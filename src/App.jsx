@@ -6,8 +6,9 @@ import SalaryChart     from './components/SalaryChart';
 import StatsCards      from './components/StatsCards';
 import DollarPanel     from './components/DollarPanel';
 import InfoPanel       from './components/InfoPanel';
-import LossCounter     from './components/LossCounter';
-import PeriodSelector  from './components/PeriodSelector';
+import LossCounter      from './components/LossCounter';
+import PeriodSelector   from './components/PeriodSelector';
+import CumulativeSummary from './components/CumulativeSummary';
 
 import { realPowerData, categorias } from './data/historicalData';
 import { useDollarRate } from './hooks/useDollarRate';
@@ -210,6 +211,14 @@ export default function App() {
             </p>
           )}
         </div>
+
+        {/* ── RESULTADO ACUMULADO DEL PERÍODO ─────────────────── */}
+        <CumulativeSummary
+          filteredData={enrichedData}
+          categoria={categoria}
+          rates={liveRates}
+          dolarType={dolarType}
+        />
 
         {/* ── TARJETAS DE ESTADÍSTICAS ─────────────────────────── */}
         <StatsCards
