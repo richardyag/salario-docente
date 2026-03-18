@@ -126,6 +126,45 @@ export const realPowerData = (() => {
  * JTP Excl: $975,510 / $1,135,896 = 0.859
  * Auxiliar 1ra Excl: $814,961 / $1,135,896 = 0.717
  */
+/**
+ * Canasta Básica Total (familia tipo: matrimonio + 2 hijos menores)
+ * Fuente: INDEC / CIFRA-CTA — valores aproximados de enero de cada año.
+ * ⚠ 2007-2015: datos INDEC cuestionados; valores subestimados.
+ */
+export const cbtPorAño = {
+  1996:      400,
+  1997:      402,
+  1998:      405,
+  1999:      392,
+  2000:      383,
+  2001:      365,
+  2002:      470,
+  2003:      470,
+  2004:      490,
+  2005:      570,
+  2006:      670,
+  2007:      830,
+  2008:     1050,
+  2009:     1280,
+  2010:     1580,
+  2011:     2000,
+  2012:     2650,
+  2013:     3450,
+  2014:     4900,
+  2015:     6700,
+  2016:     9800,
+  2017:    12800,
+  2018:    19500,
+  2019:    33000,
+  2020:    46000,
+  2021:    66000,
+  2022:   128000,
+  2023:   280000,
+  2024:   490000,
+  2025:   940000,
+  2026:  1290000,
+};
+
 export const categorias = [
   { id: 'adjunto_exclusiva',  label: 'Prof. Adjunto — Exclusiva',       multiplier: 1.000 },
   { id: 'titular_exclusiva',  label: 'Prof. Titular — Exclusiva',        multiplier: 1.282 },
