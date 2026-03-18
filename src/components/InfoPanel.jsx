@@ -21,7 +21,7 @@ const NOTES = [
   },
   {
     title: 'Fuentes de datos',
-    text: 'Resoluciones de la Paritaria Nacional Docente (ME), CONADU, FEDUN, INDEC (IPC nacional), dolarapi.com (cotizaciones en tiempo real).',
+    text: 'Resoluciones de la Paritaria Nacional Docente (ME) · CONADU (Confederación Nacional de Docentes Universitarios) · CONADU Histórica · FEDUN (Federación de Docentes de las Universidades) · INDEC (IPC nacional) · dolarapi.com (cotizaciones en tiempo real). CONADU Histórica es la federación que nuclea a las asociaciones de base de orientación clasista e independiente del gobierno.',
   },
 ];
 
