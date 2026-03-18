@@ -104,12 +104,22 @@ export default function PeriodSelector({ years, startYear, endYear, onChangeStar
             </button>
           </div>
 
-          {/* Número grande */}
-          <div className={`text-center py-2 rounded-lg ${ganó ? 'bg-emerald-900/40' : 'bg-red-900/40'}`}>
-            <span className={`text-4xl font-black tabular-nums ${ganó ? 'text-emerald-300' : 'text-red-300'}`}>
-              {fmt1(cr.realGain)}
-            </span>
-            <p className="text-xs text-slate-400 mt-0.5">poder adquisitivo real</p>
+          {/* Dos métricas de pérdida */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className={`text-center py-2 rounded-lg ${ganó ? 'bg-emerald-900/40' : 'bg-red-900/40'}`}>
+              <span className={`text-3xl font-black tabular-nums ${ganó ? 'text-emerald-300' : 'text-red-300'}`}>
+                {fmt1(cr.realGain)}
+              </span>
+              <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">pérdida de poder adquisitivo</p>
+            </div>
+            {!ganó && cr.incInflacion > cr.incNominal && (
+              <div className="text-center py-2 rounded-lg bg-red-900/40">
+                <span className="text-3xl font-black tabular-nums text-red-300">
+                  +{((( cr.incInflacion - cr.incNominal) / Math.abs(cr.incNominal)) * 100).toFixed(1)}%
+                </span>
+                <p className="text-[10px] text-slate-400 mt-0.5 leading-tight">la inflación superó al salario en</p>
+              </div>
+            )}
           </div>
 
           {/* Desglose */}

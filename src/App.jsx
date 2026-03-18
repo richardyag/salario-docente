@@ -1,27 +1,21 @@
 import { useState, useMemo } from 'react';
-import { DollarSign, BarChart2, BookOpen, ChevronDown } from 'lucide-react';
+import { BookOpen, ChevronDown } from 'lucide-react';
 
 import Header          from './components/Header';
 import SalaryChart     from './components/SalaryChart';
 import StatsCards      from './components/StatsCards';
-import DollarPanel     from './components/DollarPanel';
 import InfoPanel       from './components/InfoPanel';
 import LossCounter      from './components/LossCounter';
 import PeriodSelector   from './components/PeriodSelector';
 import CumulativeSummary from './components/CumulativeSummary';
 
 import { realPowerData, categorias } from './data/historicalData';
-import { useDollarRate } from './hooks/useDollarRate';
-
-const FALLBACK_RATES = { oficial: 1100, blue: 1380, mep: 1250, crypto: 1360 };
 
 const ALL_YEARS = [...new Set(realPowerData.map(d => d.year))].sort((a, b) => a - b);
 const MAX_YEAR  = ALL_YEARS[ALL_YEARS.length - 1];
 const MIN_YEAR  = ALL_YEARS[0];
 
 export default function App() {
-  const [mode,        setMode       ] = useState('pesos');
-  const [dolarType,   setDolarType  ] = useState('blue');
   const [chartType,   setChartType  ] = useState('combined');
   const [logScale,    setLogScale   ] = useState(true);
   const [categoriaId, setCategoriaId] = useState('adjunto_exclusiva');
@@ -29,9 +23,6 @@ export default function App() {
   // Período: por defecto últimos 10 años
   const [startYear, setStartYear] = useState(MAX_YEAR - 10);
   const [endYear,   setEndYear  ] = useState(MAX_YEAR);
-
-  const { rates, loading, error, lastUpdate, refetch } = useDollarRate();
-  const liveRates = rates || FALLBACK_RATES;
 
   const categoria = categorias.find(c => c.id === categoriaId);
 
@@ -42,19 +33,6 @@ export default function App() {
 
   const currentData = filteredData[filteredData.length - 1];
   const firstData   = filteredData[0];
-
-  // Último dato con cotizaciones live
-  const enrichedData = useMemo(() => {
-    if (!rates) return filteredData;
-    return filteredData.map((d, i) => {
-      if (i < filteredData.length - 1) return d;
-      return {
-        ...d,
-        salarioUsdOficial: Math.round(d.salarioPesos / rates.oficial),
-        salarioUsdBlue:    Math.round(d.salarioPesos / rates.blue),
-      };
-    });
-  }, [filteredData, rates]);
 
   // Salario actual del cargo elegido (para el contador de pérdida)
   const salarioActual   = Math.round((currentData?.salarioPesos || 0) * categoria.multiplier);
@@ -79,7 +57,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-900 text-white">
-      <Header onRefresh={refetch} lastUpdate={lastUpdate} />
+      <Header />
 
       <main className="max-w-2xl mx-auto px-4 py-4 space-y-4">
 
@@ -117,134 +95,77 @@ export default function App() {
           cumulativeResult={cumulativeResult}
         />
 
-        {/* ── TABS MODO ─────────────────────────────────────────── */}
+        {/* ── OPCIONES GRÁFICO ──────────────────────────────────── */}
         <div className="flex gap-2">
+          {[
+            { id: 'combined', label: 'Con inflación' },
+            { id: 'simple',   label: 'Solo salario'  },
+          ].map(({ id, label }) => (
+            <button
+              key={id}
+              onClick={() => setChartType(id)}
+              className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
+                chartType === id
+                  ? 'bg-blue-800 text-blue-100'
+                  : 'bg-slate-800/40 text-slate-400 hover:bg-slate-700/40'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
           <button
-            onClick={() => setMode('pesos')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all ${
-              mode === 'pesos'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50'
-                : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60'
+            onClick={() => setLogScale(s => !s)}
+            className={`px-3 py-2 rounded-lg text-xs font-medium transition-all border ${
+              logScale
+                ? 'bg-amber-900/60 text-amber-300 border-amber-700/50'
+                : 'bg-slate-800/40 text-slate-400 border-slate-700/40'
             }`}
+            title="Escala logarítmica: útil para ver toda la evolución 1996–2026"
           >
-            <BarChart2 className="w-4 h-4" />
-            En Pesos
-          </button>
-          <button
-            onClick={() => setMode('usd')}
-            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all ${
-              mode === 'usd'
-                ? 'bg-green-600 text-white shadow-lg shadow-green-900/50'
-                : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60'
-            }`}
-          >
-            <DollarSign className="w-4 h-4" />
-            Dolarizar
+            Log
           </button>
         </div>
-
-        {/* ── OPCIONES GRÁFICO PESOS ────────────────────────────── */}
-        {mode === 'pesos' && (
-          <div className="flex gap-2">
-            {[
-              { id: 'combined', label: 'Con inflación' },
-              { id: 'simple',   label: 'Solo salario'  },
-            ].map(({ id, label }) => (
-              <button
-                key={id}
-                onClick={() => setChartType(id)}
-                className={`flex-1 py-2 rounded-lg text-xs font-medium transition-all ${
-                  chartType === id
-                    ? 'bg-blue-800 text-blue-100'
-                    : 'bg-slate-800/40 text-slate-400 hover:bg-slate-700/40'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-            <button
-              onClick={() => setLogScale(s => !s)}
-              className={`px-3 py-2 rounded-lg text-xs font-medium transition-all border ${
-                logScale
-                  ? 'bg-amber-900/60 text-amber-300 border-amber-700/50'
-                  : 'bg-slate-800/40 text-slate-400 border-slate-700/40'
-              }`}
-              title="Escala logarítmica: útil para ver toda la evolución 1996–2026"
-            >
-              Log
-            </button>
-          </div>
-        )}
-
-        {/* ── PANEL DÓLAR ──────────────────────────────────────── */}
-        {mode === 'usd' && (
-          <DollarPanel
-            rates={liveRates}
-            loading={loading}
-            error={error}
-            dolarType={dolarType}
-            onChangeDolarType={setDolarType}
-          />
-        )}
 
         {/* ── GRÁFICO ──────────────────────────────────────────── */}
         <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-white">
-              {mode === 'pesos'
-                ? `Evolución salarial ${startYear}–${endYear}`
-                : `Salario en dólares ${startYear}–${endYear}`}
+              Evolución salarial {startYear}–{endYear}
             </h2>
-            {mode === 'pesos' && (
-              <div className="flex gap-2 text-xs">
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-3 h-3 rounded-sm bg-blue-500 opacity-70" />
-                  <span className="text-slate-400">Nominal</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="inline-block w-4 h-0.5 bg-emerald-400" />
-                  <span className="text-slate-400">Real</span>
-                </span>
-              </div>
-            )}
+            <div className="flex gap-2 text-xs">
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-3 h-3 rounded-sm bg-blue-500 opacity-70" />
+                <span className="text-slate-400">Nominal</span>
+              </span>
+              <span className="flex items-center gap-1">
+                <span className="inline-block w-4 h-0.5 bg-emerald-400" />
+                <span className="text-slate-400">Real</span>
+              </span>
+            </div>
           </div>
           <SalaryChart
-            data={enrichedData}
-            mode={mode}
-            dolarType={dolarType}
+            data={filteredData}
             categoria={categoria}
             chartType={chartType}
-            logScale={mode === 'pesos' ? logScale : false}
+            logScale={logScale}
           />
-          {mode === 'pesos' && (
-            <p className="text-xs text-slate-500 mt-2 text-center">
-              {logScale
-                ? 'Escala logarítmica — muestra toda la evolución proporcional'
-                : 'La línea verde = mismo poder de compra que en ' + startYear}
-            </p>
-          )}
-          {mode === 'usd' && (
-            <p className="text-xs text-amber-400/70 mt-2 text-center">
-              ⚠ 2007–2015: datos INDEC cuestionados — inflación real fue mayor
-            </p>
-          )}
+          <p className="text-xs text-slate-500 mt-2 text-center">
+            {logScale
+              ? 'Escala logarítmica — muestra toda la evolución proporcional'
+              : 'La línea verde = mismo poder de compra que en ' + startYear}
+          </p>
         </div>
 
         {/* ── RESULTADO ACUMULADO DEL PERÍODO ─────────────────── */}
         <CumulativeSummary
-          filteredData={enrichedData}
+          filteredData={filteredData}
           categoria={categoria}
-          rates={liveRates}
-          dolarType={dolarType}
         />
 
         {/* ── TARJETAS DE ESTADÍSTICAS ─────────────────────────── */}
         <StatsCards
           currentData={currentData}
           firstData={firstData}
-          mode={mode}
-          dolarType={dolarType === 'ambos' ? 'blue' : dolarType}
-          rates={liveRates}
           categoria={categoria}
         />
 
@@ -266,15 +187,16 @@ export default function App() {
                   <th className="px-3 py-2 text-left font-medium">Año</th>
                   <th className="px-3 py-2 text-right font-medium">Salario $</th>
                   <th className="px-3 py-2 text-right font-medium">Inflación</th>
-                  <th className="px-3 py-2 text-right font-medium">USD Of.</th>
-                  <th className="px-3 py-2 text-right font-medium">USD Blue</th>
+                  <th className="px-3 py-2 text-right font-medium">Aumento pactado</th>
+                  <th className="px-3 py-2 text-right font-medium">Real</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700/30">
-                {enrichedData.map((d, i) => {
-                  const sal   = Math.round(d.salarioPesos * categoria.multiplier);
-                  const usdOf = Math.round(sal / d.usdOficial);
-                  const usdBl = Math.round(sal / d.usdBlue);
+                {filteredData.map((d, i) => {
+                  const sal  = Math.round(d.salarioPesos * categoria.multiplier);
+                  const diff = d.incrementoSalarial != null
+                    ? parseFloat((d.incrementoSalarial - d.inflacionAnual).toFixed(1))
+                    : null;
                   return (
                     <tr key={i} className="hover:bg-slate-700/20 transition-colors">
                       <td className="px-3 py-2 font-medium text-white">
@@ -295,10 +217,15 @@ export default function App() {
                         {d.inflacionAnual > 0 ? '+' : ''}{d.inflacionAnual}%
                       </td>
                       <td className="px-3 py-2 text-right text-cyan-300">
-                        USD {usdOf.toLocaleString('es-AR')}
+                        {d.incrementoSalarial != null
+                          ? `${d.incrementoSalarial > 0 ? '+' : ''}${d.incrementoSalarial}%`
+                          : '—'}
                       </td>
-                      <td className="px-3 py-2 text-right text-purple-300">
-                        USD {usdBl.toLocaleString('es-AR')}
+                      <td className={`px-3 py-2 text-right font-semibold ${
+                        diff === null ? 'text-slate-500' :
+                        diff >= 0 ? 'text-emerald-400' : 'text-red-400'
+                      }`}>
+                        {diff === null ? '—' : `${diff > 0 ? '+' : ''}${diff}%`}
                       </td>
                     </tr>
                   );
@@ -306,7 +233,7 @@ export default function App() {
               </tbody>
             </table>
           </div>
-          {enrichedData.some(d => d.nota) && (
+          {filteredData.some(d => d.nota) && (
             <p className="px-3 py-2 text-xs text-slate-500 border-t border-slate-700/30">
               * Ver nota en metodología
             </p>
@@ -319,8 +246,7 @@ export default function App() {
         {/* ── FOOTER ──────────────────────────────────────────── */}
         <footer className="text-center py-4 text-xs text-slate-500 border-t border-slate-800">
           <p>Datos: INDEC · Paritaria Nacional Docente · CONADU · CONADU Histórica · FEDUN</p>
-          <p className="mt-1">Cotizaciones: dolarapi.com — actualizadas en tiempo real</p>
-          <p className="mt-1 text-slate-600">v1.1 · Marzo 2026</p>
+          <p className="mt-1 text-slate-600">v1.2 · Sindicato Docente UNCuyo · Marzo 2026</p>
         </footer>
       </main>
     </div>

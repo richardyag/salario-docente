@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 function fmt(n, decimals = 1) {
   return `${n > 0 ? '+' : ''}${n.toFixed(decimals)}%`;
@@ -11,7 +11,7 @@ function fmtPesos(n) {
   return `${n < 0 ? '-' : '+'}$${abs}`;
 }
 
-export default function CumulativeSummary({ filteredData, categoria, rates, dolarType }) {
+export default function CumulativeSummary({ filteredData, categoria }) {
   if (!filteredData || filteredData.length < 2) return null;
 
   const first   = filteredData[0];
@@ -19,37 +19,25 @@ export default function CumulativeSummary({ filteredData, categoria, rates, dola
   const mult    = categoria.multiplier;
   const years   = last.year - first.year;
 
-  // ── Salarios del cargo elegido ──────────────────────────────────────────
   const salFirst = first.salarioPesos * mult;
   const salLast  = last.salarioPesos  * mult;
-
-  // ── Los tres indicadores deben ser algebraicamente dependientes:
-  //    realFactor = nominalFactor / inflFactor
-  //    → si nominal < inflación, SIEMPRE hay pérdida real (sin excepciones)
-  //
-  //    realIndex en historicalData acumula inflación hasta el año ANTERIOR al
-  //    actual (accumulated[i] usa inflacion[i-1]), por eso derivamos inflFactor
-  //    del ratio y no lo calculamos por separado, evitando inconsistencias
-  //    por desfase de un año.
 
   const nominalFactor = salLast / salFirst;
   const realFactor    = last.realIndex / first.realIndex;   // fuente de verdad
   const inflFactor    = nominalFactor / realFactor;         // derivado, siempre consistente
 
-  const incNominal  = (nominalFactor - 1) * 100;
+  const incNominal   = (nominalFactor - 1) * 100;
   const incInflacion = (inflFactor   - 1) * 100;
-  const realGain    = (realFactor    - 1) * 100;
+  const realGain     = (realFactor   - 1) * 100;
 
-  // ── Salario equivalente ─────────────────────────────────────────────────
+  // Métrica sindical: cuánto superó la inflación al salario, sobre el salario
+  // Ejemplo: nominal +519%, inflación +822% → (822-519)/519 = +58.4%
+  const brechaPorc = incInflacion > incNominal
+    ? ((incInflacion - incNominal) / Math.abs(incNominal)) * 100
+    : null;
+
   const salarioEsperado = salFirst * inflFactor;
   const brechaPesos     = salLast - salarioEsperado;
-
-  // ── En dólares ───────────────────────────────────────────────────────────
-  const rateKey = dolarType === 'ambos' ? 'blue' : dolarType;
-  const rateNow = rates?.[rateKey] || last.usdBlue;
-  const salUsdFirst = Math.round(salFirst / first.usdOficial);
-  const salUsdLast  = Math.round(salLast  / rateNow);
-  const realGainUsd = ((salUsdLast / salUsdFirst) - 1) * 100;
 
   const ganó = realGain >= 0;
 
@@ -128,6 +116,21 @@ export default function CumulativeSummary({ filteredData, categoria, rates, dola
               </td>
             </tr>
 
+            {/* Brecha sindical: cuánto superó la inflación al salario */}
+            {brechaPorc !== null && (
+              <tr className="bg-red-950/30 hover:bg-red-950/50">
+                <td className="px-3 py-2.5 text-slate-400 text-xs leading-tight">
+                  La inflación superó al salario en
+                  <span className="block text-slate-500 text-[10px]">(sobre la suba salarial)</span>
+                </td>
+                <td className="px-3 py-2.5 text-right text-slate-500">—</td>
+                <td className="px-3 py-2.5 text-right text-slate-500">—</td>
+                <td className="px-3 py-2.5 text-right text-red-300 font-bold text-sm">
+                  +{brechaPorc.toFixed(1)}%
+                </td>
+              </tr>
+            )}
+
             {/* Salario que debería tener */}
             <tr className="hover:bg-slate-700/10 bg-slate-900/30">
               <td className="px-3 py-2.5 text-slate-400 text-xs leading-tight">
@@ -144,23 +147,6 @@ export default function CumulativeSummary({ filteredData, categoria, rates, dola
               </td>
             </tr>
 
-            {/* En dólares */}
-            <tr className="hover:bg-slate-700/10">
-              <td className="px-3 py-2.5 text-slate-300">
-                En USD
-                <span className="ml-1 text-slate-500 capitalize">({rateKey})</span>
-              </td>
-              <td className="px-3 py-2.5 text-right text-cyan-300">
-                USD {salUsdFirst.toLocaleString('es-AR')}
-              </td>
-              <td className="px-3 py-2.5 text-right text-cyan-300">
-                USD {salUsdLast.toLocaleString('es-AR')}
-              </td>
-              <td className={`px-3 py-2.5 text-right font-semibold ${realGainUsd >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                {fmt(realGainUsd, 1)}
-              </td>
-            </tr>
-
           </tbody>
         </table>
       </div>
@@ -169,8 +155,8 @@ export default function CumulativeSummary({ filteredData, categoria, rates, dola
       <div className={`px-3 py-2.5 border-t ${ganó ? 'border-emerald-900/40 bg-emerald-950/30' : 'border-red-900/40 bg-red-950/30'}`}>
         <p className={`text-xs leading-relaxed ${ganó ? 'text-emerald-300' : 'text-red-300'}`}>
           {ganó
-            ? `En ${years} años el salario creció ${fmt(incNominal,0)} nominal pero la inflación fue ${fmt(incInflacion,0)}, resultando en una ganancia real de ${fmt(realGain,1)}. Cada peso de ${first.year} vale hoy ${(salLast/salarioEsperado).toFixed(2)} pesos equivalentes.`
-            : `En ${years} años el salario creció ${fmt(incNominal,0)} nominal pero la inflación fue ${fmt(incInflacion,0)}, resultando en una pérdida real de ${fmt(realGain,1)}. Faltan ${fmtPesos(Math.abs(brechaPesos))} mensuales para recuperar el poder de compra de ${first.year}.`
+            ? `En ${years} años el salario creció ${fmt(incNominal,0)} nominal pero la inflación fue ${fmt(incInflacion,0)}, resultando en una ganancia real de ${fmt(realGain,1)}.`
+            : `En ${years} años el salario creció ${fmt(incNominal,0)} nominal pero la inflación fue ${fmt(incInflacion,0)}, resultando en una pérdida de poder adquisitivo del ${Math.abs(realGain).toFixed(1)}%. Faltan ${fmtPesos(Math.abs(brechaPesos))} mensuales para recuperar el poder de compra de ${first.year}.`
           }
         </p>
       </div>

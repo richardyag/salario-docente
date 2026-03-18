@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, DollarSign, AlertTriangle } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle } from 'lucide-react';
 
 function formatPesos(n) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
@@ -6,11 +6,7 @@ function formatPesos(n) {
   return `$${n}`;
 }
 
-function formatUSD(n) {
-  return `USD ${n.toLocaleString('es-AR')}`;
-}
-
-export default function StatsCards({ currentData, firstData, mode, dolarType, rates, categoria }) {
+export default function StatsCards({ currentData, firstData, categoria }) {
   if (!currentData || !firstData) return null;
 
   const mult = categoria.multiplier;
@@ -18,19 +14,13 @@ export default function StatsCards({ currentData, firstData, mode, dolarType, ra
   const salarioBase   = Math.round(firstData.salarioPesos * mult);
 
   const varNominal = ((salarioActual - salarioBase) / salarioBase * 100).toFixed(0);
-  const varReal    = Math.round(currentData.realIndex * mult - 100);
+  const perdioPoderReal = currentData.realIndex < firstData.realIndex;
 
-  const usdActual  = mode === 'usd'
-    ? Math.round((salarioActual / rates[dolarType]) || 0)
-    : null;
-  const usdBase    = mode === 'usd'
-    ? Math.round((salarioBase / firstData.usdOficial) || 0)
-    : null;
+  const nominalFactor = salarioActual / salarioBase;
+  const realFactor    = currentData.realIndex / firstData.realIndex;
+  const varReal       = ((realFactor - 1) * 100).toFixed(1);
 
-  const perdioPoderReal = currentData.realIndex < 100;
-  const perdioEnUsd = usdActual < usdBase;
-
-  const cards = mode === 'pesos' ? [
+  const cards = [
     {
       label: 'Salario Actual',
       value: formatPesos(salarioActual),
@@ -39,7 +29,7 @@ export default function StatsCards({ currentData, firstData, mode, dolarType, ra
       color: 'blue',
     },
     {
-      label: 'Salario en 1996',
+      label: `Salario en ${firstData.year}`,
       value: formatPesos(salarioBase),
       sub: 'inicio del período',
       icon: TrendingUp,
@@ -60,37 +50,6 @@ export default function StatsCards({ currentData, firstData, mode, dolarType, ra
       color: perdioPoderReal ? 'red' : 'green',
       alert: perdioPoderReal,
     },
-  ] : [
-    {
-      label: `Salario en USD (${dolarType === 'oficial' ? 'Oficial' : dolarType === 'blue' ? 'Blue' : dolarType === 'mep' ? 'MEP' : 'Cripto'})`,
-      value: formatUSD(usdActual),
-      sub: `al ${currentData.year}`,
-      icon: DollarSign,
-      color: perdioEnUsd ? 'red' : 'green',
-      alert: perdioEnUsd,
-    },
-    {
-      label: 'Salario en USD (1996)',
-      value: formatUSD(usdBase),
-      sub: 'paridad 1:1 convertibilidad',
-      icon: DollarSign,
-      color: 'slate',
-    },
-    {
-      label: 'Variación en USD',
-      value: `${perdioEnUsd ? '' : '+'}${Math.round(((usdActual - usdBase) / usdBase) * 100)}%`,
-      sub: 'vs. 1996',
-      icon: perdioEnUsd ? TrendingDown : TrendingUp,
-      color: perdioEnUsd ? 'red' : 'green',
-      alert: perdioEnUsd,
-    },
-    {
-      label: 'Tipo de cambio',
-      value: `$${rates[dolarType]?.toLocaleString('es-AR')}`,
-      sub: 'cotización actual',
-      icon: DollarSign,
-      color: 'amber',
-    },
   ];
 
   const colorMap = {
@@ -98,7 +57,6 @@ export default function StatsCards({ currentData, firstData, mode, dolarType, ra
     green: 'bg-emerald-900/60 border-emerald-600/40 text-emerald-200',
     red:   'bg-red-900/60 border-red-600/40 text-red-200',
     slate: 'bg-slate-800/60 border-slate-600/40 text-slate-300',
-    amber: 'bg-amber-900/60 border-amber-600/40 text-amber-200',
   };
 
   const iconColorMap = {
@@ -106,7 +64,6 @@ export default function StatsCards({ currentData, firstData, mode, dolarType, ra
     green: 'text-emerald-400',
     red:   'text-red-400',
     slate: 'text-slate-400',
-    amber: 'text-amber-400',
   };
 
   return (

@@ -1,6 +1,6 @@
 import {
   ResponsiveContainer, ComposedChart, Line, Bar, XAxis, YAxis,
-  CartesianGrid, Tooltip, Legend, ReferenceLine, ReferenceDot
+  CartesianGrid, Tooltip, Legend, ReferenceLine
 } from 'recharts';
 
 const EVENTS = {
@@ -15,8 +15,6 @@ const EVENTS = {
 const LABEL_MAP = {
   salarioNominal:     'Salario Nominal $',
   salarioReal1996:    'Poder Adq. Real',
-  salarioUsdOficial:  'USD Oficial',
-  salarioUsdBlue:     'USD Blue',
   inflacionAnual:     'Inflación anual',
   incrementoSalarial: 'Incremento salarial',
 };
@@ -30,14 +28,12 @@ function formatAxis(val) {
 function formatValue(val, key) {
   if (val == null) return '—';
   if (key === 'inflacionAnual' || key === 'incrementoSalarial') return `${val > 0 ? '+' : ''}${val}%`;
-  if (key.includes('Usd') || key.includes('usd')) return `USD ${val.toLocaleString('es-AR')}`;
   return `$${val.toLocaleString('es-AR')}`;
 }
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
 
-  // Separar los datos en dos grupos: salario y porcentajes
   const pctEntries = payload.filter(e =>
     e.dataKey === 'inflacionAnual' || e.dataKey === 'incrementoSalarial'
   );
@@ -45,7 +41,6 @@ const CustomTooltip = ({ active, payload, label }) => {
     e.dataKey !== 'inflacionAnual' && e.dataKey !== 'incrementoSalarial'
   );
 
-  // Calcular brecha si existen ambas líneas de %
   const infl  = pctEntries.find(e => e.dataKey === 'inflacionAnual')?.value;
   const incr  = pctEntries.find(e => e.dataKey === 'incrementoSalarial')?.value;
   const brecha = (infl != null && incr != null) ? parseFloat((incr - infl).toFixed(1)) : null;
@@ -71,7 +66,7 @@ const CustomTooltip = ({ active, payload, label }) => {
             </div>
           ))}
           {brecha !== null && (
-            <div className={`flex justify-between gap-3 mt-1.5 pt-1.5 border-t border-slate-700 font-bold`}>
+            <div className="flex justify-between gap-3 mt-1.5 pt-1.5 border-t border-slate-700 font-bold">
               <span className={brecha >= 0 ? 'text-emerald-400' : 'text-red-400'}>
                 {brecha >= 0 ? '▲ Ganancia real' : '▼ Pérdida real'}
               </span>
@@ -90,7 +85,7 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-export default function SalaryChart({ data, mode, dolarType, categoria, chartType, logScale }) {
+export default function SalaryChart({ data, categoria, chartType, logScale }) {
   if (!data?.length) return null;
 
   const mult = categoria.multiplier;
@@ -98,15 +93,11 @@ export default function SalaryChart({ data, mode, dolarType, categoria, chartTyp
     year:               d.year,
     salarioNominal:     Math.max(1, Math.round(d.salarioPesos * mult)),
     salarioReal1996:    Math.max(1, Math.round(d.salarioReal1996 * mult)),
-    salarioUsdOficial:  Math.max(1, Math.round(d.salarioUsdOficial * mult)),
-    salarioUsdBlue:     Math.max(1, Math.round(d.salarioUsdBlue * mult)),
     inflacionAnual:     d.inflacionAnual,
     incrementoSalarial: d.incrementoSalarial ?? null,
   }));
 
-  const isPesos = mode === 'pesos';
-  const isUsd   = mode === 'usd';
-  const showPct  = isPesos && chartType === 'combined';
+  const showPct = chartType === 'combined';
 
   const scaleProps = logScale
     ? { scale: 'log', domain: ['auto', 'auto'], allowDataOverflow: false }
@@ -137,7 +128,7 @@ export default function SalaryChart({ data, mode, dolarType, categoria, chartTyp
             {...scaleProps}
           />
 
-          {/* Eje derecho: porcentajes (inflación + incremento) */}
+          {/* Eje derecho: porcentajes */}
           {showPct && (
             <YAxis
               yAxisId="pct"
@@ -169,82 +160,52 @@ export default function SalaryChart({ data, mode, dolarType, categoria, chartTyp
             />
           ))}
 
-          {/* ── MODO PESOS ─────────────────────────────────────── */}
-          {isPesos && (
+          {/* Barras salario nominal */}
+          <Bar
+            yAxisId="salary"
+            dataKey="salarioNominal"
+            fill="#3b82f6"
+            fillOpacity={0.55}
+            radius={[2, 2, 0, 0]}
+          />
+          {/* Línea poder adquisitivo real */}
+          <Line
+            yAxisId="salary"
+            type="monotone"
+            dataKey="salarioReal1996"
+            stroke="#10b981"
+            strokeWidth={2.5}
+            dot={false}
+            activeDot={{ r: 5 }}
+          />
+
+          {/* Líneas de % en el eje derecho */}
+          {showPct && (
             <>
-              {/* Barras salario nominal */}
-              <Bar
-                yAxisId="salary"
-                dataKey="salarioNominal"
-                fill="#3b82f6"
-                fillOpacity={0.55}
-                radius={[2, 2, 0, 0]}
-              />
-              {/* Línea poder adquisitivo real */}
               <Line
-                yAxisId="salary"
+                yAxisId="pct"
                 type="monotone"
-                dataKey="salarioReal1996"
-                stroke="#10b981"
+                dataKey="incrementoSalarial"
+                stroke="#22d3ee"
                 strokeWidth={2.5}
-                dot={false}
-                activeDot={{ r: 5 }}
+                dot={{ fill: '#22d3ee', r: 3 }}
+                activeDot={{ r: 6 }}
+                connectNulls={false}
               />
-
-              {/* Líneas de % en el eje derecho */}
-              {showPct && (
-                <>
-                  {/* Incremento salarial — línea principal de comparación */}
-                  <Line
-                    yAxisId="pct"
-                    type="monotone"
-                    dataKey="incrementoSalarial"
-                    stroke="#22d3ee"
-                    strokeWidth={2.5}
-                    dot={{ fill: '#22d3ee', r: 3 }}
-                    activeDot={{ r: 6 }}
-                    connectNulls={false}
-                  />
-                  {/* Inflación — con qué comparar */}
-                  <Line
-                    yAxisId="pct"
-                    type="monotone"
-                    dataKey="inflacionAnual"
-                    stroke="#f97316"
-                    strokeWidth={2}
-                    dot={false}
-                    strokeDasharray="6 3"
-                  />
-                </>
-              )}
+              <Line
+                yAxisId="pct"
+                type="monotone"
+                dataKey="inflacionAnual"
+                stroke="#f97316"
+                strokeWidth={2}
+                dot={false}
+                strokeDasharray="6 3"
+              />
             </>
-          )}
-
-          {/* ── MODO USD ───────────────────────────────────────── */}
-          {isUsd && dolarType === 'oficial' && (
-            <Line yAxisId="salary" type="monotone" dataKey="salarioUsdOficial"
-              stroke="#22d3ee" strokeWidth={2.5} dot={{ fill: '#22d3ee', r: 3 }} />
-          )}
-          {isUsd && dolarType === 'blue' && (
-            <Line yAxisId="salary" type="monotone" dataKey="salarioUsdBlue"
-              stroke="#a78bfa" strokeWidth={2.5} dot={{ fill: '#a78bfa', r: 3 }} />
-          )}
-          {isUsd && dolarType === 'ambos' && (
-            <>
-              <Line yAxisId="salary" type="monotone" dataKey="salarioUsdOficial"
-                stroke="#22d3ee" strokeWidth={2} dot={false} />
-              <Line yAxisId="salary" type="monotone" dataKey="salarioUsdBlue"
-                stroke="#a78bfa" strokeWidth={2} dot={false} />
-            </>
-          )}
-          {isUsd && dolarType === 'mep' && (
-            <Line yAxisId="salary" type="monotone" dataKey="salarioUsdOficial"
-              stroke="#34d399" strokeWidth={2.5} dot={{ fill: '#34d399', r: 3 }} />
           )}
         </ComposedChart>
       </ResponsiveContainer>
 
-      {/* Referencia visual del eje derecho */}
       {showPct && (
         <div className="flex items-center justify-center gap-4 mt-1 text-xs">
           <span className="flex items-center gap-1.5">
