@@ -19,6 +19,8 @@ export default function App() {
   const [dolarType, setDolarType] = useState('blue');
   // Tipo de gráfico en modo pesos
   const [chartType, setChartType] = useState('combined');
+  // Escala logarítmica (necesaria para ver 1996-2026 en pesos)
+  const [logScale, setLogScale] = useState(true);
   // Categoría docente
   const [categoriaId, setCategoriaId] = useState('adjunto_exclusiva');
   // Año hasta el que mostrar
@@ -122,6 +124,17 @@ export default function App() {
                 {label}
               </button>
             ))}
+            <button
+              onClick={() => setLogScale(s => !s)}
+              className={`px-3 py-2 rounded-lg text-xs font-medium transition-all border ${
+                logScale
+                  ? 'bg-amber-900/60 text-amber-300 border-amber-700/50'
+                  : 'bg-slate-800/40 text-slate-400 border-slate-700/40'
+              }`}
+              title="La escala logarítmica permite ver todos los años desde 1996 en el mismo gráfico"
+            >
+              Log
+            </button>
           </div>
         )}
 
@@ -161,10 +174,13 @@ export default function App() {
             dolarType={dolarType}
             categoria={categoria}
             chartType={chartType}
+            logScale={mode === 'pesos' ? logScale : false}
           />
           {mode === 'pesos' && (
             <p className="text-xs text-slate-500 mt-2 text-center">
-              La línea verde muestra el salario con el mismo poder de compra que en 1996
+              {logScale
+                ? 'Escala logarítmica — permite ver toda la evolución 1996–2026'
+                : 'La línea verde muestra el salario con el mismo poder de compra que en 1996'}
             </p>
           )}
           {mode === 'usd' && (

@@ -52,21 +52,24 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
-export default function SalaryChart({ data, mode, dolarType, categoria, chartType }) {
+export default function SalaryChart({ data, mode, dolarType, categoria, chartType, logScale }) {
   if (!data?.length) return null;
 
   const mult = categoria.multiplier;
   const chartData = data.map(d => ({
     year: d.year,
-    salarioNominal:   Math.round(d.salarioPesos * mult),
-    salarioReal1996:  Math.round(d.salarioReal1996 * mult),
-    salarioUsdOficial: Math.round(d.salarioUsdOficial * mult),
-    salarioUsdBlue:    Math.round(d.salarioUsdBlue * mult),
-    inflacionAnual:   d.inflacionAnual,
+    salarioNominal:    Math.max(1, Math.round(d.salarioPesos * mult)),
+    salarioReal1996:   Math.max(1, Math.round(d.salarioReal1996 * mult)),
+    salarioUsdOficial: Math.max(1, Math.round(d.salarioUsdOficial * mult)),
+    salarioUsdBlue:    Math.max(1, Math.round(d.salarioUsdBlue * mult)),
+    inflacionAnual:    d.inflacionAnual,
   }));
 
   const isPesos = mode === 'pesos';
   const isUsd   = mode === 'usd';
+  const scaleProps = logScale
+    ? { scale: 'log', domain: ['auto', 'auto'], allowDataOverflow: false }
+    : {};
 
   return (
     <div className="w-full">
@@ -78,7 +81,7 @@ export default function SalaryChart({ data, mode, dolarType, categoria, chartTyp
             tick={{ fill: '#94a3b8', fontSize: 11 }}
             tickLine={false}
             axisLine={{ stroke: '#475569' }}
-            interval={chartData.length > 15 ? 4 : 2}
+            interval={chartData.length > 20 ? 4 : chartData.length > 10 ? 2 : 1}
           />
           <YAxis
             yAxisId="salary"
@@ -87,6 +90,7 @@ export default function SalaryChart({ data, mode, dolarType, categoria, chartTyp
             tickLine={false}
             axisLine={false}
             width={48}
+            {...scaleProps}
           />
           {chartType === 'combined' && (
             <YAxis
