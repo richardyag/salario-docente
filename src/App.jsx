@@ -57,8 +57,25 @@ export default function App() {
   }, [filteredData, rates]);
 
   // Salario actual del cargo elegido (para el contador de pérdida)
-  const salarioActual       = Math.round((currentData?.salarioPesos || 0) * categoria.multiplier);
-  const inflacionActual     = currentData?.inflacionAnual || 0;
+  const salarioActual   = Math.round((currentData?.salarioPesos || 0) * categoria.multiplier);
+  const inflacionActual = currentData?.inflacionAnual || 0;
+
+  // Resultado acumulado del período — se pasa al tooltip del PeriodSelector
+  const cumulativeResult = useMemo(() => {
+    if (!firstData || !currentData || firstData === currentData) return null;
+    const mult          = categoria.multiplier;
+    const salFirst      = firstData.salarioPesos  * mult;
+    const salLast       = currentData.salarioPesos * mult;
+    const nominalFactor = salLast / salFirst;
+    const realFactor    = currentData.realIndex / firstData.realIndex;
+    const inflFactor    = nominalFactor / realFactor;
+    const incNominal    = (nominalFactor - 1) * 100;
+    const incInflacion  = (inflFactor   - 1) * 100;
+    const realGain      = (realFactor   - 1) * 100;
+    const salarioEsperado = salFirst * inflFactor;
+    const brechaPesos   = salLast - salarioEsperado;
+    return { incNominal, incInflacion, realGain, brechaPesos };
+  }, [firstData, currentData, categoria]);
 
   return (
     <div className="min-h-screen bg-slate-900 text-white">
@@ -97,6 +114,7 @@ export default function App() {
           endYear={endYear}
           onChangeStart={setStartYear}
           onChangeEnd={setEndYear}
+          cumulativeResult={cumulativeResult}
         />
 
         {/* ── TABS MODO ─────────────────────────────────────────── */}
