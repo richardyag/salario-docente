@@ -81,6 +81,14 @@ export const realPowerData = (() => {
     const nominalIndex = (d.salarioPesos / base) * 100;
     const realIndex = nominalIndex / accumulated;
     const salarioEnPesos1996 = (d.salarioPesos / accumulated);
+
+    // Incremento salarial nominal año vs año anterior (%)
+    const incrementoSalarial = i === 0
+      ? null
+      : parseFloat(
+          (((d.salarioPesos - annualData[i - 1].salarioPesos) / annualData[i - 1].salarioPesos) * 100).toFixed(1)
+        );
+
     return {
       ...d,
       nominalIndex: Math.round(nominalIndex),
@@ -88,6 +96,7 @@ export const realPowerData = (() => {
       salarioReal1996: Math.round(salarioEnPesos1996),
       salarioUsdOficial: Math.round(d.salarioPesos / d.usdOficial),
       salarioUsdBlue: Math.round(d.salarioPesos / d.usdBlue),
+      incrementoSalarial,
     };
   });
 })();
