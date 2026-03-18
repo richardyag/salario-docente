@@ -23,28 +23,26 @@ export default function CumulativeSummary({ filteredData, categoria, rates, dola
   const salFirst = first.salarioPesos * mult;
   const salLast  = last.salarioPesos  * mult;
 
-  // ── Incremento salarial nominal acumulado ───────────────────────────────
-  const incNominal = ((salLast / salFirst) - 1) * 100;
+  // ── Los tres indicadores deben ser algebraicamente dependientes:
+  //    realFactor = nominalFactor / inflFactor
+  //    → si nominal < inflación, SIEMPRE hay pérdida real (sin excepciones)
+  //
+  //    realIndex en historicalData acumula inflación hasta el año ANTERIOR al
+  //    actual (accumulated[i] usa inflacion[i-1]), por eso derivamos inflFactor
+  //    del ratio y no lo calculamos por separado, evitando inconsistencias
+  //    por desfase de un año.
 
-  // ── Inflación acumulada: producto de (1 + r_i) para cada año del período
-  //    Usamos la inflación de cada año del filtro (sin el último si ya está
-  //    contado en el salario, pero tomamos todos para ser conservadores)
-  let inflFactor = 1;
-  filteredData.slice(0, -1).forEach(d => {
-    inflFactor *= (1 + (d.inflacionAnual || 0) / 100);
-  });
-  // También sumamos la del último año (inflación proyectada)
-  inflFactor *= (1 + (last.inflacionAnual || 0) / 100);
-  const incInflacion = (inflFactor - 1) * 100;
+  const nominalFactor = salLast / salFirst;
+  const realFactor    = last.realIndex / first.realIndex;   // fuente de verdad
+  const inflFactor    = nominalFactor / realFactor;         // derivado, siempre consistente
 
-  // ── Resultado real: cuánto ganó/perdió el salario en términos reales ────
-  //    Se calcula como ratio de índices reales del período
-  const realGain = ((last.realIndex / first.realIndex) - 1) * 100;
+  const incNominal  = (nominalFactor - 1) * 100;
+  const incInflacion = (inflFactor   - 1) * 100;
+  const realGain    = (realFactor    - 1) * 100;
 
-  // ── Salario equivalente: cuánto debería ser el salario hoy
-  //    si hubiera seguido exactamente la inflación desde el inicio ──────────
-  const salarioEsperado  = salFirst * inflFactor;
-  const brechaPesos      = salLast - salarioEsperado;
+  // ── Salario equivalente ─────────────────────────────────────────────────
+  const salarioEsperado = salFirst * inflFactor;
+  const brechaPesos     = salLast - salarioEsperado;
 
   // ── En dólares ───────────────────────────────────────────────────────────
   const rateKey = dolarType === 'ambos' ? 'blue' : dolarType;
