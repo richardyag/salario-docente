@@ -244,9 +244,19 @@ export default function App() {
         <InfoPanel />
 
         {/* ── FOOTER ──────────────────────────────────────────── */}
-        <footer className="text-center py-4 text-xs text-slate-500 border-t border-slate-800">
+        <footer className="text-center py-4 text-xs text-slate-500 border-t border-slate-800 space-y-1">
           <p>Datos: INDEC · Paritaria Nacional Docente · CONADU · CONADU Histórica · FEDUN</p>
-          <p className="mt-1 text-slate-600">v1.2 · Sindicato Docente UNCuyo · Marzo 2026</p>
+          <p>
+            <img
+              src="/salario-docente/fadiunc.png"
+              alt="FADIUNC"
+              className="inline w-5 h-5 rounded object-contain opacity-70 mr-1 align-middle"
+            />
+            FADIUNC · Federación de Asociaciones Docentes de la UNCuyo
+          </p>
+          <p className="text-slate-600">
+            Desarrollado por <span className="text-slate-400 font-medium">Ricardo Yagüe</span> · v1.2 · Marzo 2026
+          </p>
         </footer>
       </main>
     </div>

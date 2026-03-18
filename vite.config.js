@@ -11,7 +11,7 @@ export default defineConfig({
       manifest: {
         name: 'Salario Docente Universitario',
         short_name: 'SalarioDocente',
-        description: 'Evolución del salario docente universitario argentino',
+        description: 'Evolución del salario docente universitario argentino — FADIUNC · UNCuyo',
         theme_color: '#1e3a5f',
         background_color: '#0f172a',
         display: 'standalone',
