@@ -90,10 +90,10 @@ export default function LossCounter({ salarioBruto, inflacionAnual, categoriaLab
               <TrendingDown className={`w-5 h-5 ${c.text}`} />
             </div>
             <div>
-              <p className={`text-base font-black leading-tight ${c.text}`}>
+              <p className="text-white text-base font-black leading-tight">
                 Desde que abriste la app
               </p>
-              <p className="text-white text-sm font-bold leading-tight">
+              <p className="text-white text-base font-black leading-tight">
                 estás perdiendo...
               </p>
             </div>
