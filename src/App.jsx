@@ -9,6 +9,7 @@ import LossCounter     from './components/LossCounter';
 import PeriodSelector  from './components/PeriodSelector';
 import CumulativeSummary from './components/CumulativeSummary';
 import CanastasPanel   from './components/CanastasPanel';
+import ContactForm     from './components/ContactForm';
 
 import {
   realPowerData,
@@ -371,6 +372,9 @@ export default function App() {
             ? <><Check className="w-4 h-4" /> Copiado al portapapeles</>
             : <><Share2 className="w-4 h-4" /> Compartir estos datos</>}
         </button>
+
+        {/* ── FORMULARIO DE CONTACTO ───────────────────────────── */}
+        <ContactForm sector={sector} />
 
         {/* ── TABLA DETALLE ────────────────────────────────────── */}
         <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
