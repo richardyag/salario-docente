@@ -165,12 +165,102 @@ export const cbtPorAño = {
   2026:  1290000,
 };
 
-export const categorias = [
-  { id: 'adjunto_exclusiva',  label: 'Prof. Adjunto — Exclusiva',       multiplier: 1.000 },
-  { id: 'titular_exclusiva',  label: 'Prof. Titular — Exclusiva',        multiplier: 1.282 },
-  { id: 'asociado_exclusiva', label: 'Prof. Asociado — Exclusiva',       multiplier: 1.141 },
-  { id: 'adjunto_semiex',     label: 'Prof. Adjunto — Semi-exclusiva',   multiplier: 0.618 },
-  { id: 'jtp_exclusiva',      label: 'JTP — Exclusiva',                  multiplier: 0.859 },
-  { id: 'jtp_simple',         label: 'JTP — Simple',                     multiplier: 0.252 },
-  { id: 'ayudante_primera',   label: 'Ayudante de Primera — Simple',     multiplier: 0.177 },
+/**
+ * Escala de antigüedad — Paritaria Nacional Docente
+ * Fuente: CONADU, grilla dic-2025 s/Inst.1/2025 (vigente ene-2026)
+ * Mínimo garantizado: +20% (incluso con 0 años reconocidos).
+ */
+export function calcAntiguedadFactor(years) {
+  if (years <= 0)  return 1.20;
+  if (years >= 24) return 2.20;
+  if (years >= 22) return 2.10;
+  if (years >= 20) return 2.00;
+  if (years >= 17) return 1.80;
+  if (years >= 15) return 1.70;
+  if (years >= 12) return 1.60;
+  if (years >= 10) return 1.50;
+  if (years >= 7)  return 1.40;
+  if (years >= 5)  return 1.30;
+  return 1.20;
+}
+
+/**
+ * UNIVERSITARIOS — todos los cargos y dedicaciones
+ * Fuente: CONADU "SUELDOS BRUTOS UNIVERSITARIOS DIC 2025 s/INST 1/2025"
+ * Multiplicadores sobre Adj. Exclusiva = 1.000 ($1,135,895.61)
+ */
+export const categoriasUniversitarios = [
+  { id: 'tit_excl',  label: 'Prof. Titular — Exclusiva',              grupo: 'Exclusiva',              shortLabel: 'Prof. Titular',   multiplier: 1.282 },
+  { id: 'aso_excl',  label: 'Prof. Asociado — Exclusiva',             grupo: 'Exclusiva',              shortLabel: 'Prof. Asociado',  multiplier: 1.141 },
+  { id: 'adj_excl',  label: 'Prof. Adjunto — Exclusiva',              grupo: 'Exclusiva',              shortLabel: 'Prof. Adjunto',   multiplier: 1.000 },
+  { id: 'jtp_excl',  label: 'JTP — Exclusiva',                        grupo: 'Exclusiva',              shortLabel: 'JTP',             multiplier: 0.859 },
+  { id: 'aux1_excl', label: 'Auxiliar de 1ra — Exclusiva',            grupo: 'Exclusiva',              shortLabel: 'Auxiliar 1ra',    multiplier: 0.717 },
+  { id: 'tit_es',    label: 'Prof. Titular — Exclusiva + Simple',     grupo: 'Exclusiva + Simple',     shortLabel: 'Prof. Titular',   multiplier: 1.603 },
+  { id: 'aso_es',    label: 'Prof. Asociado — Exclusiva + Simple',    grupo: 'Exclusiva + Simple',     shortLabel: 'Prof. Asociado',  multiplier: 1.426 },
+  { id: 'adj_es',    label: 'Prof. Adjunto — Exclusiva + Simple',     grupo: 'Exclusiva + Simple',     shortLabel: 'Prof. Adjunto',   multiplier: 1.250 },
+  { id: 'jtp_es',    label: 'JTP — Exclusiva + Simple',               grupo: 'Exclusiva + Simple',     shortLabel: 'JTP',             multiplier: 1.074 },
+  { id: 'aux1_es',   label: 'Auxiliar de 1ra — Exclusiva + Simple',   grupo: 'Exclusiva + Simple',     shortLabel: 'Auxiliar 1ra',    multiplier: 0.897 },
+  { id: 'tit_comp',  label: 'Prof. Titular — Completa (Semi+Simple)', grupo: 'Completa (Semi+Simple)', shortLabel: 'Prof. Titular',   multiplier: 0.962 },
+  { id: 'aso_comp',  label: 'Prof. Asociado — Completa (Semi+Simple)',grupo: 'Completa (Semi+Simple)', shortLabel: 'Prof. Asociado',  multiplier: 0.856 },
+  { id: 'adj_comp',  label: 'Prof. Adjunto — Completa (Semi+Simple)', grupo: 'Completa (Semi+Simple)', shortLabel: 'Prof. Adjunto',   multiplier: 0.750 },
+  { id: 'jtp_comp',  label: 'JTP — Completa (Semi+Simple)',           grupo: 'Completa (Semi+Simple)', shortLabel: 'JTP',             multiplier: 0.644 },
+  { id: 'aux1_comp', label: 'Auxiliar de 1ra — Completa (Semi+Simple)',grupo: 'Completa (Semi+Simple)',shortLabel: 'Auxiliar 1ra',    multiplier: 0.538 },
+  { id: 'tit_semi',  label: 'Prof. Titular — Semiexclusiva',          grupo: 'Semiexclusiva',          shortLabel: 'Prof. Titular',   multiplier: 0.641 },
+  { id: 'aso_semi',  label: 'Prof. Asociado — Semiexclusiva',         grupo: 'Semiexclusiva',          shortLabel: 'Prof. Asociado',  multiplier: 0.570 },
+  { id: 'adj_semi',  label: 'Prof. Adjunto — Semiexclusiva',          grupo: 'Semiexclusiva',          shortLabel: 'Prof. Adjunto',   multiplier: 0.500 },
+  { id: 'jtp_semi',  label: 'JTP — Semiexclusiva',                    grupo: 'Semiexclusiva',          shortLabel: 'JTP',             multiplier: 0.429 },
+  { id: 'aux1_semi', label: 'Auxiliar de 1ra — Semiexclusiva',        grupo: 'Semiexclusiva',          shortLabel: 'Auxiliar 1ra',    multiplier: 0.359 },
+  { id: 'tit_simp',  label: 'Prof. Titular — Simple',                 grupo: 'Simple',                 shortLabel: 'Prof. Titular',   multiplier: 0.321 },
+  { id: 'aso_simp',  label: 'Prof. Asociado — Simple',                grupo: 'Simple',                 shortLabel: 'Prof. Asociado',  multiplier: 0.285 },
+  { id: 'adj_simp',  label: 'Prof. Adjunto — Simple',                 grupo: 'Simple',                 shortLabel: 'Prof. Adjunto',   multiplier: 0.250 },
+  { id: 'jtp_simp',  label: 'JTP — Simple',                           grupo: 'Simple',                 shortLabel: 'JTP',             multiplier: 0.215 },
+  { id: 'aux1_simp', label: 'Auxiliar de 1ra — Simple',               grupo: 'Simple',                 shortLabel: 'Auxiliar 1ra',    multiplier: 0.179 },
+  { id: 'aux2_simp', label: 'Auxiliar de 2da — Simple',               grupo: 'Simple',                 shortLabel: 'Auxiliar 2da',    multiplier: 0.144 },
+];
+
+/**
+ * PREUNIVERSITARIOS — todos los cargos
+ * Fuente: CONADU "SUELDOS BRUTOS PREUNIVERSITARIOS DIC 2025 s/INST 1/2025"
+ * Hora catedra Nivel Medio = $35,233.13 -> 0.03102 x Adj.Excl. por hora
+ */
+export const categoriasPreuniversitarios = [
+  { id: 'pnm_10h',  label: 'Docente Nivel Medio — 10 hs',          grupo: 'Docentes Nivel Medio',     shortLabel: '10 horas', multiplier: 0.310 },
+  { id: 'pnm_12h',  label: 'Docente Nivel Medio — 12 hs',          grupo: 'Docentes Nivel Medio',     shortLabel: '12 horas', multiplier: 0.372 },
+  { id: 'pnm_15h',  label: 'Docente Nivel Medio — 15 hs',          grupo: 'Docentes Nivel Medio',     shortLabel: '15 horas', multiplier: 0.465 },
+  { id: 'pnm_18h',  label: 'Docente Nivel Medio — 18 hs',          grupo: 'Docentes Nivel Medio',     shortLabel: '18 horas', multiplier: 0.558 },
+  { id: 'pnm_20h',  label: 'Docente Nivel Medio — 20 hs',          grupo: 'Docentes Nivel Medio',     shortLabel: '20 horas', multiplier: 0.620 },
+  { id: 'pnm_24h',  label: 'Docente Nivel Medio — 24 hs',          grupo: 'Docentes Nivel Medio',     shortLabel: '24 horas', multiplier: 0.745 },
+  { id: 'pnm_25h',  label: 'Docente Nivel Medio — 25 hs',          grupo: 'Docentes Nivel Medio',     shortLabel: '25 horas', multiplier: 0.776 },
+  { id: 'pnm_30h',  label: 'Docente Nivel Medio — 30 hs',          grupo: 'Docentes Nivel Medio',     shortLabel: '30 horas', multiplier: 0.931 },
+  { id: 'acp_nm',   label: 'Ayudante Clases Pract. Nivel Medio',   grupo: 'Auxiliares NM',            shortLabel: 'Ayud. Clases Pract.', multiplier: 0.297 },
+  { id: 'jtp_nm',   label: 'JTP Nivel Medio',                      grupo: 'Auxiliares NM',            shortLabel: 'JTP',                 multiplier: 0.357 },
+  { id: 'atp_nm',   label: 'Ayudante Tecnico Trab. Practicos',     grupo: 'Auxiliares NM',            shortLabel: 'Ayud. Tecnico TP',    multiplier: 0.297 },
+  { id: 'mep',      label: 'Maestro/a de Ensenanza Practica',      grupo: 'Ensenanza Practica',       shortLabel: 'Maestro Ens. Pract.', multiplier: 0.521 },
+  { id: 'mep_js',   label: 'Maestro/a EP — Jefe de Seccion',       grupo: 'Ensenanza Practica',       shortLabel: 'Maestro EP Jefe Sec.', multiplier: 0.573 },
+  { id: 'jgep',     label: 'Jefe Gral. de Ensenanza Practica',     grupo: 'Ensenanza Practica',       shortLabel: 'Jefe Gral. EP',       multiplier: 0.625 },
+  { id: 'jgtep',    label: 'Jefe Gral. Taller Ens. Practica',      grupo: 'Ensenanza Practica',       shortLabel: 'Jefe Gral. Taller EP', multiplier: 0.678 },
+  { id: 'pns_12h',  label: 'Docente Nivel Superior — 12 hs',       grupo: 'Docentes Nivel Superior',  shortLabel: '12 hs Niv. Superior', multiplier: 0.465 },
+  { id: 'acp_ns',   label: 'Ayudante Clases Pract. Niv. Superior', grupo: 'Docentes Nivel Superior',  shortLabel: 'Ayud. Clases Pract.', multiplier: 0.371 },
+  { id: 'jtp_ns',   label: 'JTP Nivel Superior',                   grupo: 'Docentes Nivel Superior',  shortLabel: 'JTP',                 multiplier: 0.446 },
+  { id: 'jdep_ns',  label: 'Jefe/Director Depto. Nivel Superior',  grupo: 'Docentes Nivel Superior',  shortLabel: 'Jefe/Dir. Dpto.',     multiplier: 0.733 },
+  { id: 'mgrado',   label: 'Maestro/a de Grado',                   grupo: 'Nivel Primario e Inicial', shortLabel: 'Maestro de Grado',    multiplier: 0.620 },
+  { id: 'mesp_p',   label: 'Maestro/a Especial Nivel Primario',    grupo: 'Nivel Primario e Inicial', shortLabel: 'Maestro Esp. Prim.',  multiplier: 0.734 },
+  { id: 'mcoord',   label: 'Maestro/a Coordinador/a',              grupo: 'Nivel Primario e Inicial', shortLabel: 'Maestro Coordinador', multiplier: 0.659 },
+  { id: 'mji',      label: 'Maestro/a Jardin de Infantes',         grupo: 'Nivel Primario e Inicial', shortLabel: 'Jardin de Infantes',  multiplier: 0.639 },
+  { id: 'mjm',      label: 'Maestro/a Jardin Maternal',            grupo: 'Nivel Primario e Inicial', shortLabel: 'Jardin Maternal',     multiplier: 0.658 },
+  { id: 'mesp_i',   label: 'Maestro/a Especial Nivel Inicial',     grupo: 'Nivel Primario e Inicial', shortLabel: 'Maestro Esp. Inic.',  multiplier: 0.734 },
+  { id: 'prec',     label: 'Preceptor/a',                          grupo: 'Preceptores y Orientacion',shortLabel: 'Preceptor/a',         multiplier: 0.614 },
+  { id: 'subjprec', label: 'Subjefe/a de Preceptores',             grupo: 'Preceptores y Orientacion',shortLabel: 'Subjefe Preceptores', multiplier: 0.682 },
+  { id: 'jprec',    label: 'Jefe/a de Preceptores',                grupo: 'Preceptores y Orientacion',shortLabel: 'Jefe Preceptores',    multiplier: 0.737 },
+  { id: 'orient',   label: 'Prof. Equipo de Orientacion',          grupo: 'Preceptores y Orientacion',shortLabel: 'Prof. Orientacion',   multiplier: 0.652 },
+  { id: 'aorient',  label: 'Ayudante Equipo de Orientacion',       grupo: 'Preceptores y Orientacion',shortLabel: 'Ayud. Orientacion',   multiplier: 0.326 },
+  { id: 'biblio',   label: 'Bibliotecario/a',                      grupo: 'Biblioteca',               shortLabel: 'Bibliotecario/a',     multiplier: 0.642 },
+  { id: 'jbiblio',  label: 'Jefe/a de Biblioteca',                 grupo: 'Biblioteca',               shortLabel: 'Jefe de Biblioteca',  multiplier: 0.771 },
+  { id: 'asped',    label: 'Asesor/a Pedagogico/a',                grupo: 'Conduccion y Gestion',     shortLabel: 'Asesor Pedagogico',   multiplier: 0.977 },
+  { id: 'secr',     label: 'Secretario/a',                         grupo: 'Conduccion y Gestion',     shortLabel: 'Secretario/a',        multiplier: 0.931 },
+  { id: 'prosecr',  label: 'Prosecretario/a',                      grupo: 'Conduccion y Gestion',     shortLabel: 'Prosecretario/a',     multiplier: 0.791 },
+  { id: 'regente',  label: 'Regente',                              grupo: 'Conduccion y Gestion',     shortLabel: 'Regente',             multiplier: 0.931 },
+  { id: 'subrgn',   label: 'Subregente',                           grupo: 'Conduccion y Gestion',     shortLabel: 'Subregente',          multiplier: 0.791 },
+  { id: 'vicedr',   label: 'Vicerrector/a — Vicedirector/a',       grupo: 'Conduccion y Gestion',     shortLabel: 'Vicerrector/a',       multiplier: 1.387 },
+  { id: 'rector',   label: 'Rector/a — Director/a',                grupo: 'Conduccion y Gestion',     shortLabel: 'Rector/a',            multiplier: 1.570 },
 ];

@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { BookOpen, ChevronDown, Share2, Check } from 'lucide-react';
+import { useState, useMemo, useEffect } from 'react';
+import { BookOpen, ChevronDown, Share2, Check, GraduationCap, School } from 'lucide-react';
 
 import Header          from './components/Header';
 import SalaryChart     from './components/SalaryChart';
@@ -10,30 +10,65 @@ import PeriodSelector  from './components/PeriodSelector';
 import CumulativeSummary from './components/CumulativeSummary';
 import CanastasPanel   from './components/CanastasPanel';
 
-import { realPowerData, categorias } from './data/historicalData';
+import {
+  realPowerData,
+  categoriasUniversitarios,
+  categoriasPreuniversitarios,
+  calcAntiguedadFactor,
+} from './data/historicalData';
 
 const ALL_YEARS = [...new Set(realPowerData.map(d => d.year))].sort((a, b) => a - b);
 const MAX_YEAR  = ALL_YEARS[ALL_YEARS.length - 1];
 
-function fmtShare(n) {
+function fmtPesos(n) {
   if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(2)}M`;
   if (n >= 1_000)     return `$${(n / 1_000).toFixed(0)}K`;
   return `$${Math.round(n)}`;
 }
 
+// Devuelve grupos únicos en el orden en que aparecen
+function grupos(lista) {
+  return [...new Map(lista.map(c => [c.grupo, c.grupo])).keys()];
+}
+
+const ANT_STEPS = [
+  { years: 0, label: '0 años' },
+  { years: 1, label: '1 año'  },
+  { years: 5, label: '5 años' },
+  { years: 7, label: '7 años' },
+  { years: 10, label: '10 años' },
+  { years: 12, label: '12 años' },
+  { years: 15, label: '15 años' },
+  { years: 17, label: '17 años' },
+  { years: 20, label: '20 años' },
+  { years: 22, label: '22 años' },
+  { years: 24, label: '24+ años' },
+];
+
 export default function App() {
-  const [chartType,    setChartType   ] = useState('combined');
-  const [logScale,     setLogScale    ] = useState(true);
-  const [categoriaId,  setCategoriaId ] = useState('adjunto_exclusiva');
-  const [antiguedad,   setAntiguedad  ] = useState(0);
-  const [startYear,    setStartYear   ] = useState(MAX_YEAR - 10);
-  const [endYear,      setEndYear     ] = useState(MAX_YEAR);
-  const [copied,       setCopied      ] = useState(false);
+  const [sector,      setSector     ] = useState('universitarios');
+  const [categoriaId, setCategoriaId] = useState('adj_excl');
+  const [antiguedad,  setAntiguedad ] = useState(0);
+  const [chartType,   setChartType  ] = useState('combined');
+  const [logScale,    setLogScale   ] = useState(true);
+  const [startYear,   setStartYear  ] = useState(MAX_YEAR - 10);
+  const [endYear,     setEndYear    ] = useState(MAX_YEAR);
+  const [copied,      setCopied     ] = useState(false);
 
-  const categoria = categorias.find(c => c.id === categoriaId);
+  const listaCateg = sector === 'universitarios'
+    ? categoriasUniversitarios
+    : categoriasPreuniversitarios;
 
-  // Multiplicador combinado: categoría × antigüedad (+1% por año)
-  const antFactor = 1 + antiguedad / 100;
+  // Resetear cargo al cambiar sector
+  useEffect(() => {
+    setCategoriaId(listaCateg[0].id);
+  }, [sector]);
+
+  const categoria = listaCateg.find(c => c.id === categoriaId) || listaCateg[0];
+
+  // Antigüedad: escala real de la paritaria
+  const antFactor = calcAntiguedadFactor(antiguedad);
+  const antBonus  = Math.round((antFactor - 1) * 100);
   const categoriaEfectiva = { ...categoria, multiplier: categoria.multiplier * antFactor };
 
   const filteredData = useMemo(
@@ -49,42 +84,42 @@ export default function App() {
 
   const cumulativeResult = useMemo(() => {
     if (!firstData || !currentData || firstData === currentData) return null;
-    const mult          = categoriaEfectiva.multiplier;
-    const salFirst      = firstData.salarioPesos  * mult;
-    const salLast       = currentData.salarioPesos * mult;
-    const nominalFactor = salLast / salFirst;
-    const realFactor    = currentData.realIndex / firstData.realIndex;
-    const inflFactor    = nominalFactor / realFactor;
-    const incNominal    = (nominalFactor - 1) * 100;
-    const incInflacion  = (inflFactor   - 1) * 100;
-    const realGain      = (realFactor   - 1) * 100;
+    const mult            = categoriaEfectiva.multiplier;
+    const salFirst        = firstData.salarioPesos  * mult;
+    const salLast         = currentData.salarioPesos * mult;
+    const nominalFactor   = salLast / salFirst;
+    const realFactor      = currentData.realIndex / firstData.realIndex;
+    const inflFactor      = nominalFactor / realFactor;
+    const incNominal      = (nominalFactor - 1) * 100;
+    const incInflacion    = (inflFactor   - 1) * 100;
+    const realGain        = (realFactor   - 1) * 100;
     const salarioEsperado = salFirst * inflFactor;
-    const brechaPesos   = salLast - salarioEsperado;
+    const brechaPesos     = salLast - salarioEsperado;
     return { incNominal, incInflacion, realGain, brechaPesos, salFirst, salLast, salarioEsperado };
   }, [firstData, currentData, categoriaEfectiva]);
 
   function handleShare() {
-    const cr = cumulativeResult;
-    const antText = antiguedad > 0 ? ` · ${antiguedad} años de antigüedad` : '';
-    const lines = [
-      `📉 SALARIO DOCENTE UNIVERSITARIO`,
+    const cr      = cumulativeResult;
+    const antText = antiguedad > 0 ? ` · ${antiguedad} años de antigüedad (+${antBonus}%)` : '';
+    const lines   = [
+      `SALARIO DOCENTE UNIVERSITARIO`,
       `${categoria.label}${antText}`,
-      `Período: ${startYear} → ${endYear}`,
+      `Periodo: ${startYear} a ${endYear}`,
       ``,
       cr ? [
-        `📈 Aumento salarial: +${Math.round(cr.incNominal)}%`,
-        `📊 Inflación acumulada: +${Math.round(cr.incInflacion)}%`,
-        `💸 Pérdida real: ${cr.realGain.toFixed(1)}%`,
+        `Aumento salarial: +${Math.round(cr.incNominal)}%`,
+        `Inflacion acumulada: +${Math.round(cr.incInflacion)}%`,
+        `Perdida real: ${cr.realGain.toFixed(1)}%`,
         ``,
-        `Salario ${endYear}: ${fmtShare(cr.salLast)}`,
-        `Debería ganar: ${fmtShare(cr.salarioEsperado)}`,
+        `Salario ${endYear}: ${fmtPesos(cr.salLast)}`,
+        `Deberia ganar: ${fmtPesos(cr.salarioEsperado)}`,
         cr.brechaPesos < 0
-          ? `❌ Faltan ${fmtShare(Math.abs(cr.brechaPesos))}/mes para recuperar el poder de compra de ${startYear}`
-          : `✅ Excede la inflación en ${fmtShare(cr.brechaPesos)}/mes`,
-      ].join('\n') : `Salario actual: ${fmtShare(salarioActual)}`,
+          ? `Faltan ${fmtPesos(Math.abs(cr.brechaPesos))}/mes para recuperar el poder de compra de ${startYear}`
+          : `Excede la inflacion en ${fmtPesos(cr.brechaPesos)}/mes`,
+      ].join('\n') : `Salario actual: ${fmtPesos(salarioActual)}`,
       ``,
-      `FADIUNC · UNCuyo`,
-      `🔗 https://richardyag.github.io/salario-docente/`,
+      `FADIUNC - UNCuyo`,
+      `https://richardyag.github.io/salario-docente/`,
     ].join('\n');
 
     if (navigator.share) {
@@ -103,67 +138,103 @@ export default function App() {
 
       <main className="max-w-2xl mx-auto px-4 py-4 space-y-4">
 
-        {/* ── SELECTOR DE CATEGORÍA + ANTIGÜEDAD ───────────────── */}
+        {/* ── SELECTOR DE SECTOR ────────────────────────────────── */}
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setSector('universitarios')}
+            className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all ${
+              sector === 'universitarios'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50'
+                : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60'
+            }`}
+          >
+            <GraduationCap className="w-4 h-4" />
+            Universitarios
+          </button>
+          <button
+            onClick={() => setSector('preuniversitarios')}
+            className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all ${
+              sector === 'preuniversitarios'
+                ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/50'
+                : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60'
+            }`}
+          >
+            <School className="w-4 h-4" />
+            Preuniversitarios
+          </button>
+        </div>
+
+        {/* ── CARGO + ANTIGÜEDAD ────────────────────────────────── */}
         <div className="bg-slate-800/50 rounded-xl p-3 border border-slate-700/50 space-y-3">
-          {/* Cargo */}
+
+          {/* Cargo con optgroups */}
           <div>
-            <label className="text-xs text-slate-400 block mb-1.5 font-medium">Cargo docente</label>
+            <label className="text-xs text-slate-400 block mb-1.5 font-medium">
+              {sector === 'universitarios' ? 'Cargo y dedicación' : 'Cargo'}
+            </label>
             <div className="relative">
               <select
                 value={categoriaId}
                 onChange={e => setCategoriaId(e.target.value)}
                 className="w-full bg-slate-900 border border-slate-600 text-white rounded-lg px-3 py-2.5 text-sm appearance-none pr-8 focus:outline-none focus:border-blue-500"
               >
-                {categorias.map(c => (
-                  <option key={c.id} value={c.id}>{c.label}</option>
+                {grupos(listaCateg).map(grupo => (
+                  <optgroup key={grupo} label={grupo}>
+                    {listaCateg.filter(c => c.grupo === grupo).map(c => (
+                      <option key={c.id} value={c.id}>{c.shortLabel}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
               <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
             </div>
           </div>
 
-          {/* Antigüedad */}
+          {/* Antigüedad — pasos reales de la paritaria */}
           <div>
-            <div className="flex justify-between items-center mb-1.5">
-              <label className="text-xs text-slate-400 font-medium">Antigüedad</label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-xs text-slate-400 font-medium">Antigüedad reconocida</label>
               <span className="text-xs font-semibold text-violet-300">
                 {antiguedad === 0
-                  ? 'Sin antigüedad'
-                  : `${antiguedad} años · +${antiguedad}% sobre básico`}
+                  ? `0 años · +${antBonus}% (mín. garantizado)`
+                  : `${antiguedad} ${antiguedad === 1 ? 'año' : 'años'} · +${antBonus}%`}
               </span>
             </div>
-            <input
-              type="range"
-              min={0}
-              max={30}
-              value={antiguedad}
-              onChange={e => setAntiguedad(Number(e.target.value))}
-              className="w-full h-2 bg-slate-700 rounded-full appearance-none cursor-pointer accent-violet-500"
-            />
-            <div className="flex justify-between text-xs text-slate-600 mt-0.5">
-              <span>0 años</span>
-              <span>30 años (+30%)</span>
+            {/* Botones discretos en los pasos reales de la paritaria */}
+            <div className="flex flex-wrap gap-1.5">
+              {ANT_STEPS.map(step => (
+                <button
+                  key={step.years}
+                  onClick={() => setAntiguedad(step.years)}
+                  className={`flex-1 min-w-[52px] py-1.5 rounded-lg text-xs font-medium transition-all ${
+                    antiguedad === step.years
+                      ? 'bg-violet-600 text-white shadow-sm'
+                      : 'bg-slate-700/50 text-slate-400 hover:bg-slate-600/50'
+                  }`}
+                >
+                  {step.label}
+                </button>
+              ))}
             </div>
           </div>
 
           {/* Salario resultante */}
-          {antiguedad > 0 && (
-            <div className="rounded-lg bg-violet-900/30 border border-violet-700/40 px-3 py-2 flex justify-between items-center">
-              <span className="text-xs text-violet-300">Tu salario bruto estimado ({endYear})</span>
-              <span className="text-sm font-bold text-violet-200">
-                {salarioActual >= 1_000_000
-                  ? `$${(salarioActual/1_000_000).toFixed(2)}M`
-                  : `$${(salarioActual/1_000).toFixed(0)}K`}
-              </span>
+          <div className="rounded-lg bg-slate-900/60 border border-slate-700/40 px-3 py-2 flex justify-between items-center">
+            <div>
+              <span className="text-xs text-slate-400">{categoria.label}</span>
+              {antiguedad > 0 && (
+                <span className="ml-1.5 text-xs text-violet-400">· {antiguedad} años ant.</span>
+              )}
             </div>
-          )}
+            <span className="text-sm font-bold text-white">{fmtPesos(salarioActual)}</span>
+          </div>
         </div>
 
         {/* ── CONTADOR DE PÉRDIDA POR SEGUNDO ──────────────────── */}
         <LossCounter
           salarioBruto={salarioActual}
           inflacionAnual={inflacionActual}
-          categoriaLabel={categoria.label + (antiguedad > 0 ? ` · ${antiguedad} años ant.` : '')}
+          categoriaLabel={categoria.label}
         />
 
         {/* ── SELECTOR DE PERÍODO ──────────────────────────────── */}
@@ -201,7 +272,7 @@ export default function App() {
                 ? 'bg-amber-900/60 text-amber-300 border-amber-700/50'
                 : 'bg-slate-800/40 text-slate-400 border-slate-700/40'
             }`}
-            title="Escala logarítmica: útil para ver toda la evolución 1996–2026"
+            title="Escala logarítmica"
           >
             Log
           </button>
@@ -237,26 +308,16 @@ export default function App() {
           </p>
         </div>
 
-        {/* ── RESULTADO ACUMULADO DEL PERÍODO ─────────────────── */}
-        <CumulativeSummary
-          filteredData={filteredData}
-          categoria={categoriaEfectiva}
-        />
+        {/* ── RESULTADO ACUMULADO ──────────────────────────────── */}
+        <CumulativeSummary filteredData={filteredData} categoria={categoriaEfectiva} />
 
         {/* ── CANASTAS BÁSICAS ─────────────────────────────────── */}
-        <CanastasPanel
-          filteredData={filteredData}
-          categoria={categoriaEfectiva}
-        />
+        <CanastasPanel filteredData={filteredData} categoria={categoriaEfectiva} />
 
-        {/* ── TARJETAS DE ESTADÍSTICAS ─────────────────────────── */}
-        <StatsCards
-          currentData={currentData}
-          firstData={firstData}
-          categoria={categoriaEfectiva}
-        />
+        {/* ── TARJETAS ─────────────────────────────────────────── */}
+        <StatsCards currentData={currentData} firstData={firstData} categoria={categoriaEfectiva} />
 
-        {/* ── BOTÓN COMPARTIR ──────────────────────────────────── */}
+        {/* ── COMPARTIR ────────────────────────────────────────── */}
         <button
           onClick={handleShare}
           className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all ${
@@ -276,9 +337,7 @@ export default function App() {
             <BookOpen className="w-4 h-4 text-slate-400" />
             <span className="text-sm font-semibold text-white">
               Tabla de datos
-              <span className="ml-2 text-xs text-slate-400 font-normal">
-                {startYear}–{endYear}
-              </span>
+              <span className="ml-2 text-xs text-slate-400 font-normal">{startYear}–{endYear}</span>
             </span>
           </div>
           <div className="overflow-x-auto">
@@ -288,7 +347,7 @@ export default function App() {
                   <th className="px-3 py-2 text-left font-medium">Año</th>
                   <th className="px-3 py-2 text-right font-medium">Salario $</th>
                   <th className="px-3 py-2 text-right font-medium">Inflación</th>
-                  <th className="px-3 py-2 text-right font-medium">Aumento pactado</th>
+                  <th className="px-3 py-2 text-right font-medium">Pactado</th>
                   <th className="px-3 py-2 text-right font-medium">Real</th>
                 </tr>
               </thead>
@@ -341,22 +400,17 @@ export default function App() {
           )}
         </div>
 
-        {/* ── INFO METODOLOGÍA ─────────────────────────────────── */}
         <InfoPanel />
 
-        {/* ── FOOTER ──────────────────────────────────────────── */}
         <footer className="text-center py-4 text-xs text-slate-500 border-t border-slate-800 space-y-1">
           <p>Datos: INDEC · Paritaria Nacional Docente · CONADU · CONADU Histórica · FEDUN</p>
           <p>
-            <img
-              src="/salario-docente/fadiunc.png"
-              alt="FADIUNC"
-              className="inline w-5 h-5 rounded object-contain opacity-70 mr-1 align-middle"
-            />
+            <img src="/salario-docente/fadiunc.png" alt="FADIUNC"
+              className="inline w-5 h-5 rounded object-contain opacity-70 mr-1 align-middle" />
             FADIUNC · Federación de Asociaciones Docentes de la UNCuyo
           </p>
           <p className="text-slate-600">
-            Desarrollado por <span className="text-slate-400 font-medium">Ricardo Yagüe</span> · v1.3 · Marzo 2026
+            Desarrollado por <span className="text-slate-400 font-medium">Ricardo Yagüe</span> · v1.4 · Marzo 2026
           </p>
         </footer>
       </main>
