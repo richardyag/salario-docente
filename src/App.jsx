@@ -282,6 +282,24 @@ export default function App() {
           categoriaLabel={categoria.label}
         />
 
+        {/* ── AFILIACIÓN ───────────────────────────────────────── */}
+        <a
+          href="https://www.fadiunc.org.ar/institucional/afiliate/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-between gap-3 w-full bg-gradient-to-r from-blue-700 to-blue-600 hover:from-blue-600 hover:to-blue-500 active:from-blue-800 active:to-blue-700 text-white rounded-xl px-4 py-4 shadow-lg shadow-blue-900/40 transition-all"
+        >
+          <div className="text-left">
+            <p className="font-black text-base leading-tight">¿Todavía no estás afiliado?</p>
+            <p className="text-blue-200 text-xs mt-0.5">Uníte a FADIUNC · UNCuyo →</p>
+          </div>
+          <img
+            src="/salario-docente/fadiunc.png"
+            alt="FADIUNC"
+            className="w-12 h-12 rounded-xl object-contain bg-white/15 p-1 flex-shrink-0"
+          />
+        </a>
+
         {/* ── SELECTOR DE PERÍODO ──────────────────────────────── */}
         <PeriodSelector
           years={ALL_YEARS}

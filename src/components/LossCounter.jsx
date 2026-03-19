@@ -83,22 +83,29 @@ export default function LossCounter({ salarioBruto, inflacionAnual, categoriaLab
     <div className={`rounded-xl border ${c.bg} ${c.border} overflow-hidden`}>
 
       {/* Header */}
-      <div className="flex items-center justify-between px-3 pt-3 pb-2">
-        <div className="flex items-center gap-2">
-          <div className={`p-1.5 rounded-lg ${c.badge}`}>
-            <TrendingDown className={`w-4 h-4 ${c.text}`} />
+      <div className="px-4 pt-4 pb-3 border-b border-white/10">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className={`p-2 rounded-xl ${c.badge} flex-shrink-0`}>
+              <TrendingDown className={`w-5 h-5 ${c.text}`} />
+            </div>
+            <div>
+              <p className={`text-base font-black leading-tight ${c.text}`}>
+                Desde que abriste la app
+              </p>
+              <p className="text-white text-sm font-bold leading-tight">
+                estás perdiendo...
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-white text-xs font-semibold">Pérdida de poder adquisitivo</p>
-            <p className={`text-xs ${c.text} opacity-75`}>{categoriaLabel}</p>
-          </div>
+          <button
+            onClick={togglePause}
+            className={`text-xs px-2.5 py-1 rounded-lg border ${c.border} ${c.text} hover:opacity-80 transition-opacity flex-shrink-0`}
+          >
+            {isActive ? 'Pausar' : 'Reanudar'}
+          </button>
         </div>
-        <button
-          onClick={togglePause}
-          className={`text-xs px-2.5 py-1 rounded-lg border ${c.border} ${c.text} hover:opacity-80 transition-opacity`}
-        >
-          {isActive ? 'Pausar' : 'Reanudar'}
-        </button>
+        <p className={`text-xs ${c.text} opacity-60 mt-1.5 ml-9`}>{categoriaLabel}</p>
       </div>
 
       {/* Dos contadores en paralelo */}
