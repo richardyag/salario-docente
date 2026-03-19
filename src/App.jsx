@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { BookOpen, ChevronDown, Share2, Check, GraduationCap, School } from 'lucide-react';
+import { BookOpen, Briefcase, ChevronDown, Share2, Check, GraduationCap, School } from 'lucide-react';
 
 import Header          from './components/Header';
 import SalaryChart     from './components/SalaryChart';
@@ -14,7 +14,9 @@ import {
   realPowerData,
   categoriasUniversitarios,
   categoriasPreuniversitarios,
+  categoriasNoDocentes,
   calcAntiguedadFactor,
+  calcAntiguedadNoDocente,
 } from './data/historicalData';
 
 const ALL_YEARS = [...new Set(realPowerData.map(d => d.year))].sort((a, b) => a - b);
@@ -45,6 +47,15 @@ const ANT_STEPS = [
   { years: 24, label: '24+ años' },
 ];
 
+const ANT_STEPS_NODOC = [
+  { years: 0,  label: '0 años'  },
+  { years: 5,  label: '5 años'  },
+  { years: 10, label: '10 años' },
+  { years: 15, label: '15 años' },
+  { years: 20, label: '20 años' },
+  { years: 25, label: '25+ años'},
+];
+
 export default function App() {
   const [sector,      setSector     ] = useState('universitarios');
   const [categoriaId, setCategoriaId] = useState('adj_excl');
@@ -57,17 +68,22 @@ export default function App() {
 
   const listaCateg = sector === 'universitarios'
     ? categoriasUniversitarios
-    : categoriasPreuniversitarios;
+    : sector === 'preuniversitarios'
+    ? categoriasPreuniversitarios
+    : categoriasNoDocentes;
 
-  // Resetear cargo al cambiar sector
+  // Resetear cargo y antigüedad al cambiar sector
   useEffect(() => {
     setCategoriaId(listaCateg[0].id);
+    setAntiguedad(0);
   }, [sector]);
 
   const categoria = listaCateg.find(c => c.id === categoriaId) || listaCateg[0];
 
-  // Antigüedad: escala real de la paritaria
-  const antFactor = calcAntiguedadFactor(antiguedad);
+  // Antigüedad: escala docente (paritaria) o no-docente (CCT 366/06 lineal)
+  const antFactor = sector === 'nodocentes'
+    ? calcAntiguedadNoDocente(antiguedad)
+    : calcAntiguedadFactor(antiguedad);
   const antBonus  = Math.round((antFactor - 1) * 100);
   const categoriaEfectiva = { ...categoria, multiplier: categoria.multiplier * antFactor };
 
@@ -101,8 +117,13 @@ export default function App() {
   function handleShare() {
     const cr      = cumulativeResult;
     const antText = antiguedad > 0 ? ` · ${antiguedad} años de antigüedad (+${antBonus}%)` : '';
+    const sectorLabel = sector === 'universitarios'
+      ? 'SALARIO DOCENTE UNIVERSITARIO'
+      : sector === 'preuniversitarios'
+      ? 'SALARIO DOCENTE PREUNIVERSITARIO'
+      : 'SALARIO NO DOCENTE UNIVERSITARIO';
     const lines   = [
-      `SALARIO DOCENTE UNIVERSITARIO`,
+      sectorLabel,
       `${categoria.label}${antText}`,
       `Periodo: ${startYear} a ${endYear}`,
       ``,
@@ -139,10 +160,10 @@ export default function App() {
       <main className="max-w-2xl mx-auto px-4 py-4 space-y-4">
 
         {/* ── SELECTOR DE SECTOR ────────────────────────────────── */}
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <button
             onClick={() => setSector('universitarios')}
-            className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all ${
+            className={`flex items-center justify-center gap-1.5 py-3 rounded-xl font-semibold text-xs transition-all ${
               sector === 'universitarios'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-900/50'
                 : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60'
@@ -153,14 +174,25 @@ export default function App() {
           </button>
           <button
             onClick={() => setSector('preuniversitarios')}
-            className={`flex items-center justify-center gap-2 py-3 rounded-xl font-semibold text-sm transition-all ${
+            className={`flex items-center justify-center gap-1.5 py-3 rounded-xl font-semibold text-xs transition-all ${
               sector === 'preuniversitarios'
                 ? 'bg-violet-600 text-white shadow-lg shadow-violet-900/50'
                 : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60'
             }`}
           >
             <School className="w-4 h-4" />
-            Preuniversitarios
+            Preuniversit.
+          </button>
+          <button
+            onClick={() => setSector('nodocentes')}
+            className={`flex items-center justify-center gap-1.5 py-3 rounded-xl font-semibold text-xs transition-all ${
+              sector === 'nodocentes'
+                ? 'bg-teal-600 text-white shadow-lg shadow-teal-900/50'
+                : 'bg-slate-800/60 text-slate-400 hover:bg-slate-700/60'
+            }`}
+          >
+            <Briefcase className="w-4 h-4" />
+            No Docentes
           </button>
         </div>
 
@@ -170,7 +202,7 @@ export default function App() {
           {/* Cargo con optgroups */}
           <div>
             <label className="text-xs text-slate-400 block mb-1.5 font-medium">
-              {sector === 'universitarios' ? 'Cargo y dedicación' : 'Cargo'}
+              {sector === 'universitarios' ? 'Cargo y dedicación' : sector === 'preuniversitarios' ? 'Cargo' : 'Categoría'}
             </label>
             <div className="relative">
               <select
@@ -195,14 +227,18 @@ export default function App() {
             <div className="flex justify-between items-center mb-2">
               <label className="text-xs text-slate-400 font-medium">Antigüedad reconocida</label>
               <span className="text-xs font-semibold text-violet-300">
-                {antiguedad === 0
+                {sector === 'nodocentes'
+                  ? antiguedad === 0
+                    ? '0 años · sin antigüedad'
+                    : `${antiguedad} ${antiguedad === 1 ? 'año' : 'años'} · +${antBonus}% (${antiguedad}×2%)`
+                  : antiguedad === 0
                   ? `0 años · +${antBonus}% (mín. garantizado)`
                   : `${antiguedad} ${antiguedad === 1 ? 'año' : 'años'} · +${antBonus}%`}
               </span>
             </div>
-            {/* Botones discretos en los pasos reales de la paritaria */}
+            {/* Botones discretos: pasos de la paritaria (docentes) o cada 5 años (no-docentes) */}
             <div className="flex flex-wrap gap-1.5">
-              {ANT_STEPS.map(step => (
+              {(sector === 'nodocentes' ? ANT_STEPS_NODOC : ANT_STEPS).map(step => (
                 <button
                   key={step.years}
                   onClick={() => setAntiguedad(step.years)}
@@ -228,6 +264,11 @@ export default function App() {
             </div>
             <span className="text-sm font-bold text-white">{fmtPesos(salarioActual)}</span>
           </div>
+          {sector === 'nodocentes' && (
+            <p className="text-xs text-slate-500 leading-tight">
+              ⚠ Valores aproximados — escala FATUN/APUBA extrapolada a ene-2026. Puede variar por universidad.
+            </p>
+          )}
         </div>
 
         {/* ── CONTADOR DE PÉRDIDA POR SEGUNDO ──────────────────── */}

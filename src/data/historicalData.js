@@ -185,6 +185,16 @@ export function calcAntiguedadFactor(years) {
 }
 
 /**
+ * Antigüedad no-docentes — CCT 366/06 (FATUN)
+ * 2% del básico por año de servicio reconocido, escala lineal. Max 25 años.
+ * Sin mínimo garantizado (a diferencia de la escala docente).
+ */
+export function calcAntiguedadNoDocente(years) {
+  if (years <= 0) return 1.00;
+  return 1 + Math.min(years, 25) * 0.02;
+}
+
+/**
  * UNIVERSITARIOS — todos los cargos y dedicaciones
  * Fuente: CONADU "SUELDOS BRUTOS UNIVERSITARIOS DIC 2025 s/INST 1/2025"
  * Multiplicadores sobre Adj. Exclusiva = 1.000 ($1,135,895.61)
@@ -263,4 +273,20 @@ export const categoriasPreuniversitarios = [
   { id: 'subrgn',   label: 'Subregente',                           grupo: 'Conduccion y Gestion',     shortLabel: 'Subregente',          multiplier: 0.791 },
   { id: 'vicedr',   label: 'Vicerrector/a — Vicedirector/a',       grupo: 'Conduccion y Gestion',     shortLabel: 'Vicerrector/a',       multiplier: 1.387 },
   { id: 'rector',   label: 'Rector/a — Director/a',                grupo: 'Conduccion y Gestion',     shortLabel: 'Rector/a',            multiplier: 1.570 },
+];
+
+/**
+ * NO DOCENTES — escala nacional FATUN / CCT 366/06
+ * Multiplicadores sobre Adj. Exclusiva docente = 1.000 ($1,135,895.61 ene-2026)
+ * Fuente: APUBA (UBA) mar-2024 extrapolado a ene-2026 con factor inflacionario docente.
+ * ⚠ Valores aproximados — la escala puede variar segun universidad.
+ */
+export const categoriasNoDocentes = [
+  { id: 'nd_cat1', label: 'Categoria 1 — Director / Jefe de Dpto.',  grupo: 'Tecnico-Profesional',    shortLabel: 'Cat. 1 — Director',     multiplier: 1.714 },
+  { id: 'nd_cat2', label: 'Categoria 2 — Profesional / Supervisor',  grupo: 'Tecnico-Profesional',    shortLabel: 'Cat. 2 — Profesional',  multiplier: 1.429 },
+  { id: 'nd_cat3', label: 'Categoria 3 — Tecnico Especializado',     grupo: 'Tecnico-Profesional',    shortLabel: 'Cat. 3 — Tecnico Esp.', multiplier: 1.190 },
+  { id: 'nd_cat4', label: 'Categoria 4 — Tecnico Principal',         grupo: 'Tecnico-Administrativo', shortLabel: 'Cat. 4 — Tec. Princ.',  multiplier: 0.989 },
+  { id: 'nd_cat5', label: 'Categoria 5 — Auxiliar Tecnico',          grupo: 'Tecnico-Administrativo', shortLabel: 'Cat. 5 — Aux. Tecnico', multiplier: 0.823 },
+  { id: 'nd_cat6', label: 'Categoria 6 — Auxiliar Especializado',    grupo: 'Auxiliar de Servicios',  shortLabel: 'Cat. 6 — Aux. Espec.',  multiplier: 0.686 },
+  { id: 'nd_cat7', label: 'Categoria 7 — Auxiliar General (ingres)', grupo: 'Auxiliar de Servicios',  shortLabel: 'Cat. 7 — Auxiliar',     multiplier: 0.572 },
 ];
