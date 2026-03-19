@@ -9,7 +9,7 @@ import LossCounter     from './components/LossCounter';
 import PeriodSelector  from './components/PeriodSelector';
 import CumulativeSummary from './components/CumulativeSummary';
 import CanastasPanel   from './components/CanastasPanel';
-import ContactForm     from './components/ContactForm';
+import ContactGate     from './components/ContactGate';
 
 import {
   realPowerData,
@@ -58,6 +58,7 @@ const ANT_STEPS_NODOC = [
 ];
 
 export default function App() {
+  const [acceso,      setAcceso     ] = useState(() => !!localStorage.getItem('contacto_registrado'));
   const [sector,      setSector     ] = useState('universitarios');
   const [categoriaId, setCategoriaId] = useState('adj_excl');
   const [antiguedad,  setAntiguedad ] = useState(0);
@@ -153,6 +154,8 @@ export default function App() {
       });
     }
   }
+
+  if (!acceso) return <ContactGate onAccess={() => setAcceso(true)} />;
 
   return (
     <div className="min-h-screen bg-slate-900 text-white">
@@ -372,9 +375,6 @@ export default function App() {
             ? <><Check className="w-4 h-4" /> Copiado al portapapeles</>
             : <><Share2 className="w-4 h-4" /> Compartir estos datos</>}
         </button>
-
-        {/* ── FORMULARIO DE CONTACTO ───────────────────────────── */}
-        <ContactForm sector={sector} />
 
         {/* ── TABLA DETALLE ────────────────────────────────────── */}
         <div className="bg-slate-800/50 rounded-xl border border-slate-700/50 overflow-hidden">
