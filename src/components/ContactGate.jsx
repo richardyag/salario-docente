@@ -3,12 +3,20 @@ import { Send, AlertCircle } from 'lucide-react';
 
 const ENDPOINT = 'https://script.google.com/macros/s/AKfycbwjgqW_3J1t2XS0sFFhwOpE0PBTKWVG2FbfA7LktxGaxHx_IsrrN1PWHGs2DVrVTeFF/exec';
 
+const ROLES = [
+  'Docente Universitario',
+  'Docente Preuniversitario',
+  'No Docente',
+  'Otro',
+];
+
 export default function ContactGate({ onAccess }) {
   const [email,    setEmail   ] = useState('');
   const [telefono, setTelefono] = useState('');
+  const [rol,      setRol     ] = useState('');
   const [status,   setStatus  ] = useState('idle'); // idle | loading | error
 
-  const canSubmit = email.trim() !== '' || telefono.trim() !== '';
+  const canSubmit = (email.trim() !== '' || telefono.trim() !== '') && rol !== '';
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -17,7 +25,7 @@ export default function ContactGate({ onAccess }) {
     try {
       await fetch(ENDPOINT, {
         method: 'POST',
-        body: JSON.stringify({ email, telefono, sector: 'registro' }),
+        body: JSON.stringify({ email, telefono, sector: rol }),
       });
     } catch {
       // Si falla el envío igual dejamos pasar — no bloqueamos por error de red
@@ -49,7 +57,7 @@ export default function ContactGate({ onAccess }) {
         <p className="text-sm text-slate-300 mb-4 leading-relaxed">
           Dejá tu contacto para recibir novedades sobre paritarias y actualizaciones.
           <span className="block text-slate-500 text-xs mt-1">
-            Al menos un campo es requerido para continuar.
+            Email o teléfono + tipo de cargo requeridos.
           </span>
         </p>
 
@@ -80,6 +88,28 @@ export default function ContactGate({ onAccess }) {
               autoComplete="tel"
               className="w-full bg-slate-900 border border-slate-600 text-white rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-blue-500 placeholder:text-slate-600"
             />
+          </div>
+
+          <div>
+            <label className="text-xs text-slate-400 block mb-1.5 font-medium">
+              Soy <span className="text-red-400">*</span>
+            </label>
+            <div className="grid grid-cols-2 gap-2">
+              {ROLES.map(r => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRol(r)}
+                  className={`py-2 px-3 rounded-xl text-xs font-semibold border transition-all text-left ${
+                    rol === r
+                      ? 'bg-blue-600 border-blue-500 text-white'
+                      : 'bg-slate-900 border-slate-600 text-slate-400 hover:border-slate-500'
+                  }`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
           </div>
 
           {status === 'error' && (
