@@ -17,8 +17,29 @@
  * - INDEC (IPC nacional) — ⚠ 2007–2015: datos cuestionados por intervención
  * - La Nación (sep 2024, cifras básico bruto s/antig.)
  * - Infobae (ene 2026, cifras básico bruto s/antig.)
+ * - El Destape (mar 2026: Adjunto Excl. $1.135.896 sin paritaria firmada)
+ * - La Gaceta (abr 2026: pérdida real 50–65% bajo gestión Milei en 27 meses)
+ * - INDEC IPC abr-2026: 2.6% mensual / ~12.6% acum. 2026 / ~32.0% interanual
+ * - Infobae (12-may-2026: Adjunto Excl. $1.423.055 bruto s/antig. – pérdida 34.5%)
+ * - Infozona (may-2026: aumentos 2026 → ene 2% + bono / mar +4.26% / jun +6.85% anunciado)
+ * - INDEC IPC may-2026: 2.1% mensual / acum. ene-may 14.7% / interanual 33.2% (mín. en 8 meses)
+ * - CONADU (10-jun-2026): acuerdo paritario +21.33% sobre básico mayo → garantía $1.497.941 (Adj.Excl.)
+ * - ADUBA (jun-2026): tabla salarial jun-2026 confirma garantía $1.497.941,97 (Excl.)
+ * - El Destape (jun-2026): pese al acuerdo el salario sigue ~25% abajo del nivel 2023
+ * - Acuerdo además establece +3% en octubre 2026 y reapertura paritaria en 3 meses
+ * - INDEC IPC jun-2026: 1.9% mensual / acum. ene-jun 16.9% (mínimo mensual desde ago-2025)
+ * - INDEC IPC jul-2026: 2.1% mensual / acum. ene-jul 19.3% / interanual 33.8%
+ * - CONADU/ADUBA: sin nuevo acuerdo desde jun-2026 — garantía $1.497.941,97 (Adj.Excl.) sigue vigente en ago-2026
+ * - Reapertura paritaria comprometida antes del 15-sep-2026 (sin novedades al 28-ago-2026)
+ * - Infobae/El Liberal (27–28 ago 2026): paro nacional CONADU 48h por salarios y Ley de Financiamiento
+ *   Universitario — pérdida ~30% desde dic-2023, se reclama +50% de recomposición sobre el básico actual
+ * - INDEC Canasta Básica Total jul-2026: $1.564.716 (familia 4) — mensual +2.2% / acum. 19.6% / interanual 36.1%
+ * - Página/12, La Nación (26-ago-2026): Dólar oficial ~$1.530–1.540 venta / Blue ~$1.555–1.565 venta
  * - Chequeado, Ámbito, BAE Negocios
+ *
+ * Última actualización: 28 de agosto de 2026
  */
+export const ultimaActualizacion = '28 de agosto de 2026';
 export const salaryData = [
   // ── CONVERTIBILIDAD ────────────────────────────────────────────────────────
   { year: 1996, salarioPesos:  1250, inflacionAnual:   0.2, incrementoPactado: null,  usdOficial: 1.00, usdBlue: 1.00,  nota: "Convertibilidad 1:1" },
@@ -70,8 +91,18 @@ export const salaryData = [
   // 2025: Aumentos unilaterales (7.5% sep-nov + otros). Inflación ~36% → PÉRDIDA
   // Fuente: Argentina.gob.ar, Código Docente. Enero 2025 derivado de Oct 2024 + Oct increase
   { year: 2025, salarioPesos:940000, inflacionAnual:  36.0, incrementoPactado: 20.8,  usdOficial:1010.0,usdBlue:1270.0, nota: "Sin paritaria. Aumentos unilaterales ~21% vs inflación 36% → pérdida" },
-  // 2026: Fuente: Infobae marzo 2026 (cifra exacta confirmada). Propuesta gov: 12.3% trimestral
-  { year: 2026, salarioPesos:1135896,inflacionAnual:  28.0, incrementoPactado: 20.9,  usdOficial:1100.0,usdBlue:1380.0, nota: "Fuente: Infobae 16/03/2026 — básico bruto s/antigüedad. Pérdida acumulada 2024-2026: -34% real (Código Docente)" },
+  // 2026: Acuerdo paritario firmado jun-2026 (CONADU): +21.33% sobre básico mayo → garantía $1.497.941 (Adj.Excl.).
+  // Aumentos previos no paritarios: ene +2% + bono / mar +4.26%. Acumulado ene-jun: ~31.9%.
+  // Salario Adjunto Excl. enero 2026: $1.135.896. Mayo 2026: $1.423.055 (Infobae 12-may). Junio 2026: $1.497.941 (ADUBA).
+  // Sin nuevo acuerdo desde jun-2026: la garantía $1.497.941,97 sigue vigente en ago-2026 (acumulado sin cambios: ~31.9%).
+  // IPC INDEC: ene 2.2% / feb 2.4% / mar 3.4% / abr 2.6% / may 2.1% / jun 1.9% / jul 2.1%
+  //   → acum. ene-jul 19.3% / interanual jul 33.8%.
+  // Proyección inflación 2026: ~32% (19.3% acum. ene-jul + ~2% mensual promedio estimado ago-dic).
+  // Paro nacional CONADU 27–28 ago 2026: pérdida ~30% desde dic-2023, reclamo +50% recomposición y Ley
+  // de Financiamiento Universitario. +3% programado para oct-2026 (sobre básico sep). Reapertura de
+  // paritaria comprometida antes del 15-sep-2026 (sin novedades al 28-ago-2026).
+  // Dólar 2-ene-2026: Oficial $1.495 / Blue $1.530. BCRA con bandas cambiarias. Ago-2026: Oficial ~$1.535 / Blue ~$1.560.
+  { year: 2026, salarioPesos:1135896,inflacionAnual:  32.0, incrementoPactado: 31.9,  usdOficial:1495.0,usdBlue:1530.0, nota: "1er acuerdo paritario en ~2 años (jun-2026): +21.33% → garantía $1.497.941,97 (Adj.Excl.), sin cambios desde entonces. Acum. ene-jun/ago ~31.9% vs IPC acum. ene-jul 19.3% → recuperación parcial. Paro nacional 27-28 ago 2026: pérdida ~30% desde dic-2023, se reclama +50% (CONADU/Infobae)" },
 ];
 
 /** Un único punto por año → eliminamos la deduplicación por mes */
@@ -129,6 +160,8 @@ export const realPowerData = (() => {
 /**
  * Canasta Básica Total (familia tipo: matrimonio + 2 hijos menores)
  * Fuente: INDEC / CIFRA-CTA — valores aproximados de enero de cada año.
+ * 2026: estimado a partir de INDEC jul-2026 ($1.564.716 familia 4) retropolado
+ * con la variación acumulada 2026 (19.6% ene-jul).
  * ⚠ 2007-2015: datos INDEC cuestionados; valores subestimados.
  */
 export const cbtPorAño = {
@@ -162,16 +195,16 @@ export const cbtPorAño = {
   2023:   280000,
   2024:   490000,
   2025:   940000,
-  2026:  1290000,
+  2026:  1308000,
 };
 
 /**
- * Escala de antigüedad — Paritaria Nacional Docente
- * Fuente: CONADU, grilla dic-2025 s/Inst.1/2025 (vigente ene-2026)
- * Mínimo garantizado: +20% (incluso con 0 años reconocidos).
+ * Escala de antigüedad — CCT Docente Universitario, Art. 36
+ * Fuente: CONADU Histórica (onaduhistorica.org.ar) — escala del CCT vigente.
+ * 0 años: sin bonificación. Escala: 1a=10%, 2a=20%, 5a=30%, ..., 24a+=120%.
  */
 export function calcAntiguedadFactor(years) {
-  if (years <= 0)  return 1.20;
+  if (years <= 0)  return 1.00;
   if (years >= 24) return 2.20;
   if (years >= 22) return 2.10;
   if (years >= 20) return 2.00;
@@ -181,7 +214,8 @@ export function calcAntiguedadFactor(years) {
   if (years >= 10) return 1.50;
   if (years >= 7)  return 1.40;
   if (years >= 5)  return 1.30;
-  return 1.20;
+  if (years >= 2)  return 1.20;
+  return 1.10;
 }
 
 /**

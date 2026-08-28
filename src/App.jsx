@@ -18,6 +18,7 @@ import {
   categoriasNoDocentes,
   calcAntiguedadFactor,
   calcAntiguedadNoDocente,
+  ultimaActualizacion,
 } from './data/historicalData';
 
 const ALL_YEARS = [...new Set(realPowerData.map(d => d.year))].sort((a, b) => a - b);
@@ -37,6 +38,7 @@ function grupos(lista) {
 const ANT_STEPS = [
   { years: 0, label: '0 años' },
   { years: 1, label: '1 año'  },
+  { years: 2, label: '2 años' },
   { years: 5, label: '5 años' },
   { years: 7, label: '7 años' },
   { years: 10, label: '10 años' },
@@ -472,8 +474,11 @@ export default function App() {
               className="inline w-5 h-5 rounded object-contain opacity-70 mr-1 align-middle" />
             FADIUNC · Federación de Asociaciones Docentes de la UNCuyo
           </p>
+          <p className="text-slate-500">
+            Última actualización de datos: <span className="text-emerald-400 font-medium">{ultimaActualizacion}</span>
+          </p>
           <p className="text-slate-600">
-            Desarrollado por <span className="text-slate-400 font-medium">Ricardo Yagüe</span> · v1.4 · Marzo 2026
+            Desarrollado por <span className="text-slate-400 font-medium">Ricardo Yagüe</span> · v1.6 · Agosto 2026
           </p>
         </footer>
       </main>
